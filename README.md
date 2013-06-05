@@ -19,27 +19,27 @@ Those elements are provided in the library and also a C++ design that allows to 
 efficient technicques for incremental image alignment:
 
   * Hager and Belhumeur's jacobian factorisation method::
-
-      Efficient Region Tracking with Parametric Models of Geometry and Illumination.
-      G. Hager, P. Belhumeur
-      IEEE Trans. PAMI, 20(10), pp. 1025-39, October 1998.
+      
+        Efficient Region Tracking with Parametric Models of Geometry and Illumination.
+        G. Hager, P. Belhumeur
+        IEEE Trans. PAMI, 20(10), pp. 1025-39, October 1998.
 
   * Baker and Matthews's Inverse Compositional method::
+      
+        Lucas-Kanade 20 Years On: A Unifying Framework.
+        Simon Baker, Iain Matthews
+        International Journal of Computer Vision 56(3), 221–255, 2004
 
-      Lucas-Kanade 20 Years On: A Unifying Framework.
-      Simon Baker, Iain Matthews
-      International Journal of Computer Vision 56(3), 221–255, 2004
-
-The img_align_lib already provides:
+The ImgAlignLib already provides:
 
   * Jacobian factorisation for planar tracking (with a single texture object model) with
     2D similarity, affine and homography based motion models.
   * Jacobian factorisation for planar tracking using 2D appearance models
     (i.e. PCA of deforming faces)::
 
-       Efficient illumination independent appearance-based face tracking.
-       Jose M. Buenaposada, Enrique Muñoz, Luis Baumela.
-       Image and vision computing , 27(5):560-578. 2009
+        Efficient illumination independent appearance-based face tracking.
+        Jose M. Buenaposada, Enrique Muñoz, Luis Baumela.
+        Image and vision computing , 27(5):560-578. 2009
 
   * Inverse Compositional with image gradients::
 
@@ -56,29 +56,29 @@ Requirements
 You need the following libraries installed on you system in order to
 build ImgAlignLib:
 
-* `OpenCV <http://www.opencv.org/>`_
-* `CMake <http://www.cmake.org/>`_
+* `OpenCV <http://www.opencv.org/>`
+* `CMake <http://www.cmake.org/>`
 
 Installation
 ------------
 
 In order to compile the ImgAlignLib package you have to::
 
-  $ cd img_align_lib/src
-  $ mkdir build
-  $ cd build
-  $ cmake ..
-  $ make
+        $ cd img_align_lib/src
+        $ mkdir build
+        $ cd build
+        $ cmake ..
+        $ make
 
 If everything went OK, you should be able to install the
 package with::
 
-  $ sudo make install
+        $ sudo make install
 
 And then to test planar alignment you can run::
 
-  $ test_img_align
-
+        $ test_img_align
+ 
 and then to test the face appearance model based aligment::
 
-  $ test_pca_model_align
+        $ test_pca_model_align
