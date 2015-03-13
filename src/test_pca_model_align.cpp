@@ -147,11 +147,11 @@ size_t num_appearance_params
 			initial_motion_params.copyTo(initial_motion_params_ref);
 
 #elif defined(USE_AFFINE_MODEL)     
-			cv::Mat initial_params = cv::Mat::zeros(6 + num_appearance_params, 1, cv::DataType<MAT_TYPE>::type);  
-			cv::Mat initial_motion_params_ref = initial_params(cv::Range(0,6), cv::Range::all());
-			cv::Mat initial_motion_params = (cv::Mat_<MAT_TYPE>(6,1) << x_center, y_center, 
-				x_scale, 0.,  0., y_scale);
-			initial_motion_params.copyTo(initial_motion_params_ref); 
+			cv::Mat initial_params = cv::Mat::zeros(6 + num_appearance_params, 1, cv::DataType<MAT_TYPE>::type);
+			cv::Mat initial_motion_params_ref = initial_params(cv::Range(0, 6), cv::Range::all());
+			cv::Mat initial_motion_params = (cv::Mat_<MAT_TYPE>(6, 1) << x_center, y_center,
+				x_scale, 0., 0., y_scale);
+			initial_motion_params.copyTo(initial_motion_params_ref);
 #else
 #error "Wrong motion model"
 #endif
@@ -181,7 +181,7 @@ size_t num_appearance_params
 // Restrictions and Caveats:
 //
 // -----------------------------------------------------------------------------
-void
+double
 showResults
 (
 Mat& frame,
