@@ -22,7 +22,7 @@
 
 // ----------------------- INCLUDES --------------------------------------------
 #include "factorized_jacobian_problem.hpp"
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <vector>
 #include <opencv/cv.hpp>
 
@@ -34,7 +34,7 @@ namespace upm { namespace pcr
  */
 // -----------------------------------------------------------------------------
 class Homography2DFactorizedProblem;
-typedef boost::shared_ptr<Homography2DFactorizedProblem> Homography2DFactorizedProblemPtr;
+typedef std::shared_ptr<Homography2DFactorizedProblem> Homography2DFactorizedProblemPtr;
 
 // -----------------------------------------------------------------------------
 /**

@@ -1,5 +1,4 @@
 #include "opencv2/opencv.hpp"
-#include <boost/concept_check.hpp>
 #include "viewer.hpp"
 #include "optimizerGN.hpp"
 #include "tracker.hpp"
@@ -201,7 +200,7 @@ processFrame
 // Restrictions and Caveats:
 //
 // -----------------------------------------------------------------------------
-double
+void
 showResults
   (
   Mat& frame,

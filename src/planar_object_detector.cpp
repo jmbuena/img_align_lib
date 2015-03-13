@@ -45,8 +45,8 @@ PlanarObjectDetector::PlanarObjectDetector
     template_image.copyTo(m_template_image);
   }
   
-//   m_detector                 = cv::FeatureDetector::create( "SURF" );
-   m_detector                 = cv::Ptr<cv::FeatureDetector>( new cv::SurfFeatureDetector(100, 3, 4));
+   m_detector                 = cv::FeatureDetector::create( "SURF" );
+//   m_detector                 = cv::Ptr<cv::FeatureDetector>( new cv::SurfFeatureDetector(100, 3, 4));
 //   m_detector                 = cv::FeatureDetector::create( "FAST" );
 //   m_detector                 = cv::Ptr<cv::FeatureDetector>( new cv::FastFeatureDetector(100));
   m_descriptorExtractor      = cv::DescriptorExtractor::create( "SURF" );

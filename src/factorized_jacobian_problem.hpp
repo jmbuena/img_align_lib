@@ -32,7 +32,7 @@ namespace upm { namespace pcr
  */
 // -----------------------------------------------------------------------------
 class FactorizedJacobianProblem;
-typedef boost::shared_ptr<FactorizedJacobianProblem> FactorizedJacobianProblemPtr;
+typedef std::shared_ptr<FactorizedJacobianProblem> FactorizedJacobianProblemPtr;
 
 // -----------------------------------------------------------------------------
 /**

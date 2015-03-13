@@ -21,7 +21,7 @@
 #define OPTIMIZER_HPP
 
 // ----------------------- INCLUDES --------------------------------------------
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include "optimization_problem.hpp"
 #include "img_align_lib.hpp"
 
@@ -33,7 +33,7 @@ namespace upm { namespace pcr
  */
 // -----------------------------------------------------------------------------
 class Optimizer;
-typedef boost::shared_ptr<Optimizer> OptimizerPtr;
+typedef std::shared_ptr<Optimizer> OptimizerPtr;
 
 // -----------------------------------------------------------------------------
 /**

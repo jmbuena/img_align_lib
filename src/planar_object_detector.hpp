@@ -21,7 +21,7 @@
 #define PLANAR_OBJECT_DETECTOR_HPP
 
 // ----------------------- INCLUDES --------------------------------------------
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include "viewer.hpp"
 #include "img_align_lib.hpp"
 #include <opencv/cv.h>
@@ -34,7 +34,7 @@ namespace upm { namespace pcr
  */
 // -----------------------------------------------------------------------------
 class PlanarObjectDetector;
-typedef boost::shared_ptr<PlanarObjectDetector> PlanarObjectDetectorPtr;
+typedef std::shared_ptr<PlanarObjectDetector> PlanarObjectDetectorPtr;
 
 // -----------------------------------------------------------------------------
 /**

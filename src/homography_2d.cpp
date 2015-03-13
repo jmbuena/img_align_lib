@@ -19,7 +19,6 @@
 #include "homography_2d.hpp"
 #include "trace.hpp"
 #include <limits>
-#include <boost/concept_check.hpp>
 
 namespace upm { namespace pcr
 {

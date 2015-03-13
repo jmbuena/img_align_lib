@@ -22,7 +22,7 @@
 
 // ----------------------- INCLUDES --------------------------------------------
 #include "image_pca_factorized_problem.hpp"
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <vector>
 #include <opencv/cv.hpp>
 
@@ -34,7 +34,7 @@ namespace upm { namespace pcr
  */
 // -----------------------------------------------------------------------------
 class Similarity2DImagePCAFactorizedProblem;
-typedef boost::shared_ptr<Similarity2DImagePCAFactorizedProblem> Similarity2DImagePCAFactorizedProblemPtr;
+typedef std::shared_ptr<Similarity2DImagePCAFactorizedProblem> Similarity2DImagePCAFactorizedProblemPtr;
 
 // -----------------------------------------------------------------------------
 /**
