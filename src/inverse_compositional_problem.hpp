@@ -31,7 +31,7 @@ namespace upm { namespace pcr
  */
 // -----------------------------------------------------------------------------
 class InverseCompositionalProblem;
-typedef boost::shared_ptr<InverseCompositionalProblem> InverseCompositionalProblemPtr;
+typedef std::shared_ptr<InverseCompositionalProblem> InverseCompositionalProblemPtr;
 
 // -----------------------------------------------------------------------------
 /**

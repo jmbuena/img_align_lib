@@ -23,7 +23,7 @@
 // ----------------------- INCLUDES --------------------------------------------
 #include "factorized_jacobian_problem.hpp"
 #include "image_pca_model.hpp"
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <vector>
 #include <opencv/cv.hpp>
 
@@ -35,7 +35,7 @@ namespace upm { namespace pcr
  */
 // -----------------------------------------------------------------------------
 class ImagePCAFactorizedProblem;
-typedef boost::shared_ptr<ImagePCAFactorizedProblem> ImagePCAFactorizedProblemPtr;
+typedef std::shared_ptr<ImagePCAFactorizedProblem> ImagePCAFactorizedProblemPtr;
 
 // -----------------------------------------------------------------------------
 /**

@@ -80,8 +80,8 @@ ADD_EXECUTABLE(test_img_align
   )
 TARGET_LINK_LIBRARIES(test_img_align
   ${OpenCV_LIBS}   
-  jpeg
-  tiff
+  #jpeg
+  #tiff
   boost_program_options
   img_align
 )
@@ -93,8 +93,8 @@ ADD_EXECUTABLE(test_pca_model_align
   )
 TARGET_LINK_LIBRARIES(test_pca_model_align
   ${OpenCV_LIBS}   
-  jpeg
-  tiff
+  #jpeg
+  #tiff
   img_align
 )
 

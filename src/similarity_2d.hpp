@@ -32,7 +32,7 @@ namespace upm { namespace pcr
  */
 // -----------------------------------------------------------------------------
 class Similarity2D;
-typedef boost::shared_ptr<Similarity2D> Similarity2DPtr;
+typedef std::shared_ptr<Similarity2D> Similarity2DPtr;
 
 // -----------------------------------------------------------------------------
 /**

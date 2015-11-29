@@ -21,7 +21,7 @@
 #define TRACKER_HPP
 
 // ----------------------- INCLUDES --------------------------------------------
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include "viewer.hpp"
 #include "optimizer.hpp"
 #include "motion_model.hpp"
@@ -44,7 +44,7 @@ class params_incorrect: public std::exception {};
  */
 // -----------------------------------------------------------------------------
 class Tracker;
-typedef boost::shared_ptr<Tracker> TrackerPtr;
+typedef std::shared_ptr<Tracker> TrackerPtr;
 
 // -----------------------------------------------------------------------------
 /**
@@ -104,7 +104,7 @@ public:
   void
   setNumPyramidLevels
     (
-    uint num_pyramid_levels
+    unsigned int num_pyramid_levels
     ) { if (num_pyramid_levels > 0) m_num_pyramid_levels = num_pyramid_levels; };
 
   cv::Mat
@@ -131,7 +131,7 @@ public:
 protected:
   cv::Mat m_motion_params;
   double m_max_cost;
-  uint m_num_pyramid_levels;
+  unsigned int m_num_pyramid_levels;
   OptimizerPtr m_optimizer;
   MotionModelPtr m_motion_model;
   cv::Mat m_params;

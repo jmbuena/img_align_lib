@@ -23,7 +23,7 @@
 // ----------------------- INCLUDES --------------------------------------------
 #include "inverse_compositional_problem.hpp"
 #include "single_image_gradients_model.hpp"
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <vector>
 #include <opencv/cv.hpp>
 
@@ -35,7 +35,7 @@ namespace upm { namespace pcr
  */
 // -----------------------------------------------------------------------------
 class Similarity2DGradCorrInvCompProblem;
-typedef boost::shared_ptr<Similarity2DGradCorrInvCompProblem> Similarity2DGradCorrInvCompProblemPtr;
+typedef std::shared_ptr<Similarity2DGradCorrInvCompProblem> Similarity2DGradCorrInvCompProblemPtr;
 
 // -----------------------------------------------------------------------------
 /**

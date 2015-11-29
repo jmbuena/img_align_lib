@@ -141,6 +141,8 @@ ImagePCAModel::computeTemplateFeaturesGradient
   cv::Mat object_params
   )
 { 
+	assert(0);
+	return cv::Mat();
    //return m_gradients;
 };
   

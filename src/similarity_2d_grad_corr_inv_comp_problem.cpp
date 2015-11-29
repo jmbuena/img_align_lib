@@ -96,11 +96,8 @@ computeCorrelationOfGradients
     MAT_TYPE template_grad_x = template_features_vector.at<MAT_TYPE>(i,0);
     MAT_TYPE template_grad_y = template_features_vector.at<MAT_TYPE>(i,1);
 
-    double norm_grad          = std::max(sqrt(grad_x*grad_x + grad_y*grad_y),
-                                         TINY_NUMBER);
-    double norm_template_grad = std::max(sqrt(template_grad_x*template_grad_x +
-                                              template_grad_y*template_grad_y),
-                                         TINY_NUMBER);
+	double norm_grad = std::max<double>(sqrt(grad_x*grad_x + grad_y*grad_y), TINY_NUMBER);
+	double norm_template_grad = std::max<double>(sqrt(template_grad_x*template_grad_x + template_grad_y*template_grad_y), TINY_NUMBER);
     
     q_p += (grad_x/norm_grad)*(template_grad_x/norm_template_grad) +
            (grad_y/norm_grad)*(template_grad_y/norm_template_grad);
@@ -413,7 +410,7 @@ Similarity2DGradCorrInvCompProblem::computeConstantJacobian
     grad_x  = gradients.at<MAT_TYPE>(i,0);
     grad_y  = gradients.at<MAT_TYPE>(i,1);
     
-    norm_grad         = std::max(sqrt((grad_x*grad_x) + (grad_y*grad_y)), TINY_NUMBER);
+    norm_grad         = std::max<MAT_TYPE>(sqrt((grad_x*grad_x) + (grad_y*grad_y)), TINY_NUMBER);
     grad_x           /= norm_grad;
     grad_y           /= norm_grad;
     

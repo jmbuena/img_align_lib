@@ -32,7 +32,7 @@ namespace upm { namespace pcr
  */
 // -----------------------------------------------------------------------------
 class GaussNewtonOptimizer;
-typedef boost::shared_ptr<GaussNewtonOptimizer> GaussNewtonOptimizerPtr;
+typedef std::shared_ptr<GaussNewtonOptimizer> GaussNewtonOptimizerPtr;
 
 // -----------------------------------------------------------------------------
 /**

@@ -21,7 +21,7 @@
 #define MOTION_MODEL_HPP
 
 // ----------------------- INCLUDES --------------------------------------------
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include "viewer.hpp"
 #include <vector>
 #include "img_align_lib.hpp"
@@ -35,7 +35,7 @@ namespace upm { namespace pcr
  */
 // -----------------------------------------------------------------------------
 class MotionModel;
-typedef boost::shared_ptr<MotionModel> MotionModelPtr;
+typedef std::shared_ptr<MotionModel> MotionModelPtr;
 
 // -----------------------------------------------------------------------------
 /**
