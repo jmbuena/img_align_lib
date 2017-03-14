@@ -32,7 +32,7 @@ namespace upm { namespace pcr
  */
 // -----------------------------------------------------------------------------
 class Homography2D;
-typedef boost::shared_ptr<Homography2D> Homography2DPtr;
+typedef std::shared_ptr<Homography2D> Homography2DPtr;
 
 // -----------------------------------------------------------------------------
 /**

@@ -23,7 +23,7 @@
 // ----------------------- INCLUDES --------------------------------------------
 #include "motion_model.hpp"
 #include "object_model.hpp"
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <vector>
 #include <opencv/cv.hpp>
 #include "img_align_lib.hpp"
@@ -36,7 +36,7 @@ namespace upm { namespace pcr
  */
 // -----------------------------------------------------------------------------
 class OptimizationProblem;
-typedef boost::shared_ptr<OptimizationProblem> OptimizationProblemPtr;
+typedef std::shared_ptr<OptimizationProblem> OptimizationProblemPtr;
 
 // -----------------------------------------------------------------------------
 /**

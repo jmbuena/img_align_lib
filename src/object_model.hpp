@@ -21,7 +21,7 @@
 #define OBJECT_MODEL_HPP
 
 // ----------------------- INCLUDES --------------------------------------------
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include "viewer.hpp"
 #include "img_align_lib.hpp"
 
@@ -34,7 +34,7 @@ namespace upm { namespace pcr
  */
 // -----------------------------------------------------------------------------
 class ObjectModel;
-typedef boost::shared_ptr<ObjectModel> ObjectModelPtr;
+typedef std::shared_ptr<ObjectModel> ObjectModelPtr;
 
 // -----------------------------------------------------------------------------
 /**

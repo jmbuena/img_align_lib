@@ -32,7 +32,7 @@ namespace upm { namespace pcr
  */
 // -----------------------------------------------------------------------------
 class Affine2D;
-typedef boost::shared_ptr<Affine2D> Affine2DPtr;
+typedef std::shared_ptr<Affine2D> Affine2DPtr;
 
 // -----------------------------------------------------------------------------
 /**

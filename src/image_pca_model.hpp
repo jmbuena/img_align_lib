@@ -32,7 +32,7 @@ namespace upm { namespace pcr
  */
 // -----------------------------------------------------------------------------
 class ImagePCAModel;
-typedef boost::shared_ptr<ImagePCAModel> ImagePCAModelPtr;
+typedef std::shared_ptr<ImagePCAModel> ImagePCAModelPtr;
 
 // -----------------------------------------------------------------------------
 /**

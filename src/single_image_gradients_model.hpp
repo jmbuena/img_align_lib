@@ -32,7 +32,7 @@ namespace upm { namespace pcr
  */
 // -----------------------------------------------------------------------------
 class SingleImageGradientsModel;
-typedef boost::shared_ptr<SingleImageGradientsModel> SingleImageGradientsModelPtr;
+typedef std::shared_ptr<SingleImageGradientsModel> SingleImageGradientsModelPtr;
 
 // -----------------------------------------------------------------------------
 /**
