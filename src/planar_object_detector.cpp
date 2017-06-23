@@ -17,6 +17,7 @@
 // -----------------------------------------------------------------------------
 #include "planar_object_detector.hpp"
 #include <opencv2/features2d/features2d.hpp>
+//#include <opencv2/nonfree/nonfree.hpp>
 #include "trace.hpp"
 
 namespace upm { namespace pcr
@@ -45,18 +46,22 @@ PlanarObjectDetector::PlanarObjectDetector
     template_image.copyTo(m_template_image);
   }
   
-//   m_detector                 = cv::FeatureDetector::create( "SURF" );
-   m_detector                 = cv::Ptr<cv::FeatureDetector>( new cv::SurfFeatureDetector(100, 3, 4));
-//   m_detector                 = cv::FeatureDetector::create( "FAST" );
-//   m_detector                 = cv::Ptr<cv::FeatureDetector>( new cv::FastFeatureDetector(100));
-  m_descriptorExtractor      = cv::DescriptorExtractor::create( "SURF" );
-//   m_descriptorMatcher        = cv::DescriptorMatcher::create( "FlannBased" );
-  m_descriptorMatcher        = cv::Ptr<cv::DescriptorMatcher>( new cv::FlannBasedMatcher(new cv::flann::KDTreeIndexParams(4), new cv::flann::SearchParams(64)));
+//  m_detector                 = cv::FeatureDetector::create( "SURF" );
+//  m_detector->set("hessianThreshold", 100.);
+//  m_detector->set("nOctaveLayers", 4);
+//  m_detector->set("nOctaves", 3);
+//  m_descriptorExtractor      = cv::DescriptorExtractor::create( "SURF" );
+//  m_descriptorMatcher        = cv::DescriptorMatcher::create("FlannBased");
 
-//   m_detector                 = cv::FeatureDetector::create( "ORB" );
-//   m_descriptorExtractor      = cv::DescriptorExtractor::create( "ORB" );
-//   m_descriptorMatcher        = cv::Ptr<cv::DescriptorMatcher>( new cv::BruteForceMatcher<cv::Hamming>());
- 
+//  m_detector                 = cv::FeatureDetector::create( "ORB" );
+//  m_descriptorExtractor      = cv::DescriptorExtractor::create( "ORB" );
+
+  m_detector                  = cv::FeatureDetector::create( "FAST" );
+//  m_detector->set("threshold", 30); // 10
+//  m_detector->set("nonmaxSuppression", true); // true
+  m_descriptorExtractor      = cv::DescriptorExtractor::create( "BRISK" );
+  m_descriptorMatcher        = cv::DescriptorMatcher::create("BruteForce-Hamming");
+
   m_maxRansacReprojError     = 3;
   m_minNumInliersPercentage  = 0.4;
   
@@ -99,7 +104,7 @@ PlanarObjectDetector::locateObject
   cv::Mat frame_gray;
   std::vector<cv::Point2f> template_points; 
   cv::Mat transformed_template_points; 
-  cv::vector<cv::Point2f> frame_points; 
+  std::vector<cv::Point2f> frame_points;
   double maxInlierDist;
   
   m_object_found = false;
@@ -112,7 +117,7 @@ PlanarObjectDetector::locateObject
     m_detector->detect( m_template_image, m_template_keypoints );
     m_descriptorExtractor->compute( m_template_image, m_template_keypoints, m_template_descriptors );
 
-    cv::vector<cv::Mat> descriptors;
+    std::vector<cv::Mat> descriptors;
     descriptors.push_back(m_template_descriptors);
     m_descriptorMatcher->add(descriptors);
     m_descriptorMatcher->train();
@@ -283,4 +288,4 @@ PlanarObjectDetector::showResults
   }
 }
 
-}; }; // namespace
+} } // namespace

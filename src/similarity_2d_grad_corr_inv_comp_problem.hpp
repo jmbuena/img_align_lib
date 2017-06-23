@@ -25,7 +25,7 @@
 #include "single_image_gradients_model.hpp"
 #include <boost/shared_ptr.hpp>
 #include <vector>
-#include <opencv/cv.hpp>
+#include <opencv/cv.h>
 
 namespace upm { namespace pcr
 {

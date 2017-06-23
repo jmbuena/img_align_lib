@@ -18,16 +18,16 @@ const int FRAME_WIDTH               = 640;
 const int TEMPLATE_IMG_WIDTH        = 75;
 const int TEMPLATE_IMG_HEIGHT       = 75;
 const double TEMPLATE_SCALE         = 3;
-const bool TEMPLATE_EQUALIZATION    = false;
-const int NUM_MAX_ITERATIONS        = 20;
+const bool TEMPLATE_EQUALIZATION    = true;
+const int NUM_MAX_ITERATIONS        = 30;
 const bool SHOW_OPTIMIZER_ITERATION_COSTS = true;
-const int  NUM_PYRAMID_LEVELS       = 3;
-const float MAX_COST_FUNCTION_VALUE = 20.E+7;
+const int  NUM_PYRAMID_LEVELS       = 2;
+const float MAX_COST_FUNCTION_VALUE = 8.E+7;
 // const int SURF_HESSIAN_THRESHOLD    = 200;
 
-#define USE_HOMOGRAPHY_FACTORIZED_PROBLEM
+#undef USE_HOMOGRAPHY_FACTORIZED_PROBLEM
 #undef USE_AFFINE_FACTORIZED_PROBLEM
-#undef USE_SIMILARITY_FACTORIZED_PROBLEM
+#define USE_SIMILARITY_FACTORIZED_PROBLEM
 #undef USE_SIMILARITY_CORR_GRAD_INV_COMP_PROBLEM
 
 #ifdef USE_SIMILARITY_FACTORIZED_PROBLEM 
@@ -40,7 +40,7 @@ const float MAX_COST_FUNCTION_VALUE = 20.E+7;
   #include "affine_2d.hpp"
   #include "affine_2d_factorized_problem.hpp"
   #define USE_AFFINE_MODEL
-#elif defined(USE_HOMOGRAPHY_FACTORIZED_PROBLEM)
+#elif defined(USE_HOMOGRAPHY_cv::INTER_NEAREST;FACTORIZED_PROBLEM)
   #include "single_image_model.hpp"
   #include "homography_2d.hpp"
   #include "homography_2d_factorized_problem.hpp"
@@ -85,12 +85,12 @@ processFrame
 
   ticks = static_cast<double>(cvGetTickCount());
   
-  if (tracker.isLost())  
+  if (tracker.isLost())
   {
     Mat src_corners = (cv::Mat_<MAT_TYPE>(4, 2) << 0,                   0,
                                                    template_image.cols, 0,
-		                                   template_image.cols, template_image.rows,
-		                                   0                  , template_image.rows);
+                                                   template_image.cols, template_image.rows,
+                                                   0                  , template_image.rows);
     Mat dst_corners;
     src_corners.copyTo(dst_corners);
     if (detector.locateObject(frame, src_corners, dst_corners))
@@ -126,12 +126,12 @@ processFrame
       float angle = M_PI;
       if (dx > 1.0E-6) // It is big enough
       {
-	angle = std::atan(dy/dx);
+        angle = std::atan(dy/dx);
       }
       motion_params =  (cv::Mat_<MAT_TYPE>(4,1) << A.at<MAT_TYPE>(0,2),  // tx
-	                                           A.at<MAT_TYPE>(1,2),  // ty
-			                           angle,  // angle
-			                           (A.at<MAT_TYPE>(0,0) + A.at<MAT_TYPE>(1,1))/2.0); // scale  
+                                                   A.at<MAT_TYPE>(1,2),  // ty
+                                                   angle,  // angle
+                                                   (A.at<MAT_TYPE>(0,0) + A.at<MAT_TYPE>(1,1))/2.0); // scale
 #elif defined(USE_AFFINE_MODEL) 
       Mat A           = Mat::zeros(2, 3, DataType<MAT_TYPE>::type);
       CvPoint2D32f src_points[3];
@@ -229,7 +229,7 @@ showResults
   viewer.image(&ipl_frame, 0, 0, frame.cols, frame.rows);
   if (!tracker.isLost())
   {
-    tracker.showResults(viewer, frame);  
+    tracker.showResults(viewer, frame);
   }
   else
   {
@@ -261,8 +261,8 @@ getTemplate
 {
   float red_color[3] = {1.0, 0.0, 0.0};
   int top, left, width, height;
-  Mat template_image = cv::Mat(TEMPLATE_IMG_WIDTH, TEMPLATE_IMG_HEIGHT, frame.type()); 
-  
+  Mat template_image = cv::Mat(TEMPLATE_IMG_WIDTH, TEMPLATE_IMG_HEIGHT, frame.type());
+
   have_template = false;
   
   if (!viewer.isInitialised())
@@ -306,7 +306,7 @@ getTemplate
     cv::resize(template_roi, template_image, Size(TEMPLATE_IMG_WIDTH, TEMPLATE_IMG_HEIGHT));
     imwrite("template_image.bmp", template_image);
   }
-  
+
   return template_image;
 }
 
@@ -425,9 +425,9 @@ main
 		                                 TEMPLATE_SCALE, 0.,
 						 0.,             TEMPLATE_SCALE);
 #elif defined(USE_HOMOGRAPHY_MODEL)    
-    initial_params = (cv::Mat_<MAT_TYPE>(9,1) <<  TEMPLATE_SCALE, 0.            , 0., 
-		                                  0.             , TEMPLATE_SCALE, 0., 
-		                                 (static_cast<MAT_TYPE>(frame.cols)/2.0),  (static_cast<MAT_TYPE>(frame.rows)/2.0), 1.0); 
+    initial_params = (cv::Mat_<MAT_TYPE>(9,1) <<  TEMPLATE_SCALE ,             0., 0.,
+                                                  0.             , TEMPLATE_SCALE, 0.,
+                   (static_cast<MAT_TYPE>(frame.cols)/2.0),  (static_cast<MAT_TYPE>(frame.rows)/2.0), 1.0);
 #else
   #error "Wrong motion model configuration"
 #endif

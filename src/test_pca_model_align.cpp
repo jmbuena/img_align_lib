@@ -10,25 +10,24 @@
 using namespace cv;
 using namespace upm::pcr;
 
-//#define USE_TRACKING_AFTER_DETECTION
 #undef USE_TRACKING_AFTER_DETECTION
 
 const double TICKS_PER_SECOND       = (static_cast<double>(cvGetTickFrequency())*1.0e6);
 const double TICKS_PER_MILLISECOND  = (static_cast<double>(cvGetTickFrequency())*1.0e3);
 const int FRAME_HEIGHT              = 480;
 const int FRAME_WIDTH               = 640;
-const int NUM_MAX_ITERATIONS        = 10;
+const int NUM_MAX_ITERATIONS        = 20;
 const bool SHOW_OPTIMIZER_ITERATION_COSTS = false;
-const int  NUM_PYRAMID_LEVELS       = 3;
+const int  NUM_PYRAMID_LEVELS       = 1;
 const std::string CASCADE_NAME      = "/usr/share/opencv/haarcascades/haarcascade_frontalface_alt2.xml";
 
 #define USE_SIMILARITY_PCA_FACTORIZED_PROBLEM
 #undef USE_AFFINE_PCA_FACTORIZED_PROBLEM
 
 // #include "pca_illum_9_identity_60_64x64.hpp"
-#include "pca_illum_9_64x64.hpp"
+//#include "pca_illum_9_64x64.hpp"
 
-//#include "pca_illum_9_identity_40_32x32.hpp"
+#include "pca_illum_9_identity_40_32x32.hpp"
 //#include "pca_illum_9_32x32.hpp"
 
 #ifdef USE_SIMILARITY_PCA_FACTORIZED_PROBLEM 
@@ -258,7 +257,7 @@ main
     return 0;
   }
 
-  const std::string cascade_opt = "--cascade1=";
+  const std::string cascade_opt = "--cascade=";
   size_t cascade_opt_len = cascade_opt.length();
   string inputName;
   for (int i = 1; i < argc; i++) 

@@ -67,7 +67,7 @@ Tracker::Tracker
 // -----------------------------------------------------------------------------
 Tracker::~Tracker
   () 
-{};
+{}
 
 // -----------------------------------------------------------------------------
 //
@@ -291,6 +291,6 @@ Tracker::isLost
   return (area < MIN_OBJECT_AREA) ||
          (last_cost > m_max_cost) ||
          (m_motion_model->invalidParams(m_motion_params));
-};
+}
 
-}; }; // namespace
+} } // namespace

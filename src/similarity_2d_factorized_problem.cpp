@@ -215,8 +215,7 @@ Similarity2DFactorizedProblem::computeInverseJacobian
   
   cv::Mat Sigma    = computeSigmaMatrix(params);  
   cv::Mat invSigma = Sigma.inv();
-  cv::Mat  invJ; // = cv::Mat::zeros(invSigma.rows, m_invM0.cols, cv::DataType<MAT_TYPE>::type);
-  invJ             = invSigma * m_invM0;
+  cv::Mat invJ     = invSigma * m_invM0;
 
 #ifdef DEBUG
   // write Mat objects to the file

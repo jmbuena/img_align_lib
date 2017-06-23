@@ -131,8 +131,8 @@ public:
    *  points. The control_points_indices are the column indices in reference_coords that
    *  are control points. 
    * 
-   *  @param reference_coords A matrix that is Nxk (number of template pixels/features x dim(\vx)).
    *  @param control_points_indices Column indices of reference_coords for the control points.
+   *  @param control_points_lines 
    */
   virtual void
   getCtrlPointsIndices

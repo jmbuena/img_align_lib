@@ -1,22 +1,41 @@
-
 #------------------------------------------------------------------------------
 # Tell cmake where to find the project cmake scripts
 #------------------------------------------------------------------------------
 PROJECT(img_align_lib)
 cmake_minimum_required(VERSION 2.8)
 
+#-- Where to look first for cmake modules
 SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
-#
-#SET(CMAKE_BUILD_TYPE Release)
-SET(CMAKE_BUILD_TYPE Debug)
-#SET(CMAKE_BUILD_TYPE RelwithDebugInfo)
-## If you want the full compiler output, uncomment the following line.
-#SET(CMAKE_VERBOSE_MAKEFILE ON)
-#
-#ENABLE_TESTING()
 
+# ------ VERSION INFORMATION -----------
+set(MY_PRODUCT_NUMBER 0)  # Increase when making a revolutionary API change (e.g. change the object model classes interface)
+set(MY_PRODUCT_VERSION 0) # Increase when adding a new object model, alignment algorithm, etc. to the framework (without API change). 
+set(MY_BUILD_NUMBER 1)    # Increase when fixing a an error.
+
+# configure_file(
+#   ${CMAKE_CURRENT_SOURCE_DIR}/version.rc.in
+#   ${CMAKE_CURRENT_BINARY_DIR/version.rc
+#   @ONLY)
+# ------- END VERSION INFORMATION ------
+
+#-- Type of build
+#SET(CMAKE_BUILD_TYPE Debug)
+#SET(CMAKE_BUILD_TYPE Release)
+SET(CMAKE_BUILD_TYPE RelwithDebugInfo)
+
+# REQUIRED: stops processing with an error if the package cannot be found.
 FIND_PACKAGE(OpenCV REQUIRED)
 FIND_PACKAGE(Boost REQUIRED)
+
+MESSAGE("OpenCV information:")
+MESSAGE("   > OpenCV_INCLUDE_DIRS: ${OpenCV_INCLUDE_DIRS}")
+MESSAGE("   > OpenCV_LIB_DIR: ${OpenCV_LIB_DIR}")
+MESSAGE("   > OpenCV_LIBS: ${OpenCV_LIBS}")
+
+MESSAGE("Boost information:")
+MESSAGE("   > Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
+MESSAGE("   > Boost_LIBRARY_DIRS: ${Boost_LIBRARY_DIRS}")
+MESSAGE("   > Boost_LIBRARIES: ${Boost_LIBRARIES}")
 
 INCLUDE_DIRECTORIES( ${OpenCV_INCLUDE_DIRS} C:/OpenCV2.1/include E:/Archivos\ de\ programa/boost/boost_1_44 /usr/include .)
 LINK_DIRECTORIES( ${OpenCV_LINKS_DIR} /usr/lib )
@@ -71,7 +90,13 @@ ADD_LIBRARY(img_align SHARED
   img_align_lib.hpp
   )
 TARGET_LINK_LIBRARIES(img_align ${OpenCV_LIBS})
-SET_TARGET_PROPERTIES(img_align PROPERTIES PUBLIC_HEADER "tracklib.hpp")
+
+#SET_TARGET_PROPERTIES(img_align PROPERTIES PUBLIC_HEADER "tracklib.hpp")
+SET_TARGET_PROPERTIES(img_align
+  PROPERTIES
+  VERSION ${MY_PRODUCT_NUMBER}.${MY_PRODUCT_VERSION}.${MY_BUILD_NUMBER}
+    SOVERSION ${MY_PRODUCT_NUMBER})
+
 
 ADD_EXECUTABLE(test_img_align
   tracker.hpp

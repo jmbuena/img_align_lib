@@ -79,7 +79,7 @@ SingleImageModel::SingleImageModel
     indices.p2_index = m_control_points_indices[(i+1) % 4];
     m_control_points_lines.push_back(indices);
   }
-};
+}
 
 // -----------------------------------------------------------------------------
 //
@@ -93,7 +93,7 @@ SingleImageModel::SingleImageModel
 SingleImageModel::~SingleImageModel
   () 
 {
-};
+}
     
 // -----------------------------------------------------------------------------
 //
@@ -111,7 +111,7 @@ SingleImageModel::computeTemplateFeaturesGradient
   )
 { 
   return m_gradients;
-};
+}
   
     
 // -----------------------------------------------------------------------------
@@ -146,7 +146,7 @@ SingleImageModel::extractFeaturesFromWarpedImage
   }
 
   return warped_image_vector;
-};
+}
   
 // -----------------------------------------------------------------------------
 //
@@ -167,7 +167,7 @@ SingleImageModel::computeTemplateFeatures
   m_template_gray_levels.convertTo(gray_levels, cv::DataType<MAT_TYPE>::type);
   
   return gray_levels;
-};
+}
   
 // -----------------------------------------------------------------------------
 //
@@ -266,4 +266,4 @@ SingleImageModel::computeTemplateCoordinates
   return coordinates;
 }
 
-}; }; // namespace
+} } // namespace

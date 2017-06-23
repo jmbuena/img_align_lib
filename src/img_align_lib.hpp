@@ -19,12 +19,13 @@
 #ifndef IMG_ALIGN_LIB
 #define IMG_ALIGN_LIB
 
-namespace upm { namespace pcr
-{
+namespace upm { namespace pcr {
 
-typedef float MAT_TYPE;   
+typedef float MAT_TYPE;
+//typedef double MAT_TYPE;
 
-}};
+
+} }
 
 
 #endif

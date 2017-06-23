@@ -19,6 +19,8 @@
 #include "optimizerGN.hpp"
 #include "trace.hpp"
 
+#undef USE_GPU
+
 #define DEBUG
 
 namespace upm { namespace pcr
@@ -35,7 +37,7 @@ namespace upm { namespace pcr
 GaussNewtonOptimizer::~GaussNewtonOptimizer
   () 
 { 
-};
+}
 
 // -----------------------------------------------------------------------------
 //
@@ -146,6 +148,6 @@ GaussNewtonOptimizer::solve
   }
 
   return current_params;
-};
+}
 
-}; }; // namespace
+} } // namespace

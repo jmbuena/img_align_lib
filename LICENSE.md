@@ -1,12 +1,12 @@
 IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
 
- By downloading, copying, installing or using the software you agree to this license.
- If you do not agree to this license, do not download, install,
+By downloading, copying, installing or using the software you agree to this 
+license. If you do not agree to this license, do not download, install,
  copy or use the software.
 
 
-                          License Agreement
-                      For Image Alignment Library (img_align_lib)
+      License Agreement
+      For Image Alignment Library (img_align_lib)
 
 Copyright (C) 2013, Jose M. Buenaposada, all rights reserved.
 Third party copyrights are property of their respective owners.

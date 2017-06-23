@@ -99,7 +99,7 @@ Affine2DImagePCAFactorizedProblem::computeSigmaMatrix
   appearance_params.copyTo(C_range2);
   
   cv::Mat A = (cv::Mat_<MAT_TYPE>(2,2) << a, c,
-	                                  b, d);  
+                                          b, d);
   cv::Mat C_invA = C * A.inv();
 
   cv::Mat Sigma = cv::Mat::zeros(3*C.rows, C_invA.cols*3, cv::DataType<MAT_TYPE>::type);

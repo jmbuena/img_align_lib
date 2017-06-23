@@ -140,6 +140,6 @@ protected:
   std::vector<LineIndices> m_ctrl_points_lines;
 };
 
-}; }; // namespace
+} } // namespace
 
 #endif

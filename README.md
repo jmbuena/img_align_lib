@@ -49,6 +49,7 @@ The ImgAlignLib already provides:
 
   * A demo program for planar tracking.
   * A demo program for 2D appearance tracking of faces.
+  * The .xml file for umbrello modeller with the UML design behind the implementation (doc/img_align_lib_model.xml).
 
 Requirements
 ------------
