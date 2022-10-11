@@ -109,7 +109,7 @@ PlanarObjectDetector::locateObject
   std::vector<cv::Point2f> template_points; 
   cv::Mat transformed_template_points; 
   std::vector<cv::Point2f> frame_points;
-  double maxInlierDist;
+//  double maxInlierDist;
   
   m_object_found = false;
 
@@ -186,34 +186,22 @@ PlanarObjectDetector::locateObject
   cv::KeyPoint::convert(m_template_keypoints, template_points, templateIdxs);
   cv::KeyPoint::convert(m_frame_keypoints, frame_points, frameIdxs);
 //  m_H = cv::findHomography( cv::Mat(template_points), cv::Mat(frame_points), cv::RANSAC, m_maxRansacReprojError );
-  m_H = cv::findHomography( cv::Mat(template_points), cv::Mat(frame_points), cv::RHO, m_maxRansacReprojError );
+  cv::Mat mask;
+  m_H = cv::findHomography( cv::Mat(template_points), cv::Mat(frame_points), cv::RHO, m_maxRansacReprojError, mask);
 
   // ----------------------------------------------------------------
   // Compute number of inliers
   // ----------------------------------------------------------------
-  cv::perspectiveTransform(cv::Mat(template_points), transformed_template_points, m_H);
-  maxInlierDist = m_maxRansacReprojError < 0 ? 3 : m_maxRansacReprojError;
   m_num_inliers = 0;
   m_inliers_indices.clear();
-  for( int i1 = 0; i1 < templateIdxs.size(); i1++ )
+  for(size_t i1 = 0; i1 < m_filtered_matches.size(); i1++ )
   {
-    int idx_template = templateIdxs[i1];
-    int idx_frame = frameIdxs[i1];
-    if (cv::norm(frame_points[idx_frame] - transformed_template_points.at<cv::Point2f>(idx_template,0)) <= maxInlierDist ) // inlier
+    if ((unsigned int)mask.at<uchar>(i1))
     {
       m_num_inliers++;
       m_inliers_indices.push_back(i1); // i1 is the index of the inlier match in the m_filtered_matches vector
     }
   }
-
-//  for( int i1 = 0; i1 < template_points.size(); i1++ )
-//  {
-//    if (cv::norm(frame_points[i1] - transformed_template_points.at<cv::Point2f>(i1,0)) <= maxInlierDist ) // inlier
-//    {
-//      m_num_inliers++;
-//      m_inliers_indices.push_back(i1);
-//    }
-//  }
   
   // ----------------------------------------------------------------
   // Compute the corresponding corners to template image on the input frame.
@@ -226,7 +214,7 @@ PlanarObjectDetector::locateObject
   cv::Mat homogeneous_coords     = cv::Mat::ones(template_corners.rows, 3, cv::DataType<MAT_TYPE>::type);
   cv::Mat homogeneous_coords_ref = homogeneous_coords(cv::Range::all(), cv::Range(0, 2));
   template_corners.copyTo(homogeneous_coords_ref);
-  
+
   cv::Mat homogeneous_new_coords = (homogeneous_coords * m_H.t());
   
   // Divide by the third homogeneous coordinates to get the cartersian coordinates.

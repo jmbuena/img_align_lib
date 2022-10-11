@@ -19,6 +19,7 @@
 #include "tracker.hpp"
 #include "optimizer.hpp"
 #include "trace.hpp"
+#include <exception>
 
 const int MIN_OBJECT_AREA = 100;
 
@@ -84,12 +85,11 @@ Tracker::setInitialParams
   cv::Mat initial_params
   )
 {
-
-//   if ((initial_params.rows != m_motion_model->getNumParams()) || 
-//       (initial_params.cols != 1)) 
-//   {
-//     throw motion_params_incorrect();
-//   }
+//  if ((initial_params.rows != m_motion_model->getNumParams()) ||
+//      (initial_params.cols != 1))
+//  {
+//    throw std::domain_error("Tracker::setInitialParams");
+//  }
   
   cv::Mat initial_params_MAT_TYPE;
   

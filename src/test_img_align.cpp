@@ -16,19 +16,20 @@ const double TICKS_PER_MILLISECOND  = (static_cast<double>(cv::getTickFrequency(
 const int FRAME_HEIGHT              = 480;
 const int FRAME_WIDTH               = 640;
 const int TEMPLATE_IMG_WIDTH        = 75;
+const int TEMPLATE_IMG_WIDTH_DIV2   = static_cast<int>(TEMPLATE_IMG_WIDTH / 2.0);
 const int TEMPLATE_IMG_HEIGHT       = 75;
+const int TEMPLATE_IMG_HEIGHT_DIV2   = static_cast<int>(TEMPLATE_IMG_HEIGHT / 2.0);
 const double TEMPLATE_SCALE         = 3;
 const bool TEMPLATE_EQUALIZATION    = true;
-const int NUM_MAX_ITERATIONS        = 40;
+const int NUM_MAX_ITERATIONS        = 20;
 const bool SHOW_OPTIMIZER_ITERATION_COSTS = true;
-const int  NUM_PYRAMID_LEVELS       = 1;
-//const float MAX_COST_FUNCTION_VALUE = 8.E+8;
-const float MAX_COST_FUNCTION_VALUE = 1800;
+const int  NUM_PYRAMID_LEVELS       = 2;
+const float MAX_COST_FUNCTION_VALUE = 150;
 // const int SURF_HESSIAN_THRESHOLD    = 200;
 
 #undef USE_HOMOGRAPHY_FACTORIZED_PROBLEM
-#define USE_AFFINE_FACTORIZED_PROBLEM
-#undef USE_SIMILARITY_FACTORIZED_PROBLEM
+#undef USE_AFFINE_FACTORIZED_PROBLEM
+#define USE_SIMILARITY_FACTORIZED_PROBLEM
 #undef USE_SIMILARITY_CORR_GRAD_INV_COMP_PROBLEM
 
 #ifdef USE_SIMILARITY_FACTORIZED_PROBLEM 
@@ -85,7 +86,6 @@ processFrame
   
   if (tracker.isLost())
   {
-    std::cout << "1 ===== HA PASADO!!!!!" << std::endl;
     Mat src_corners = (cv::Mat_<MAT_TYPE>(4, 2) << 0,                   0,
                                                    template_image.cols, 0,
                                                    template_image.cols, template_image.rows,
@@ -94,33 +94,32 @@ processFrame
     src_corners.copyTo(dst_corners);
     if (detector.locateObject(frame, src_corners, dst_corners))
     {
-      std::cout << "2 ===== HA PASADO!!!!!" << std::endl;
+      cv::Point2f src_points[4];
+      cv::Point2f dst_points[4];
 
-#ifdef USE_SIMILARITY_MODEL
-      Mat A           = Mat::zeros(2, 3, DataType<MAT_TYPE>::type);
-      cv::Point2f src_points[3];
-      cv::Point2f dst_points[3];
-       
-      src_points[0].x = src_corners.at<MAT_TYPE>(0, 0); 
-      src_points[0].y = src_corners.at<MAT_TYPE>(0, 1);
-      src_points[1].x = src_corners.at<MAT_TYPE>(1, 0);
-      src_points[1].y = src_corners.at<MAT_TYPE>(1, 1);
-      src_points[2].x = src_corners.at<MAT_TYPE>(2, 0);
-      src_points[2].y = src_corners.at<MAT_TYPE>(2, 1);
+      src_points[0].x = static_cast<MAT_TYPE>(-TEMPLATE_IMG_WIDTH_DIV2);
+      src_points[0].y = static_cast<MAT_TYPE>(-TEMPLATE_IMG_HEIGHT_DIV2);
+      src_points[1].x = static_cast<MAT_TYPE>(TEMPLATE_IMG_WIDTH_DIV2);
+      src_points[1].y = static_cast<MAT_TYPE>(-TEMPLATE_IMG_HEIGHT_DIV2);
+      src_points[2].x = static_cast<MAT_TYPE>(TEMPLATE_IMG_WIDTH_DIV2);
+      src_points[2].y = static_cast<MAT_TYPE>(TEMPLATE_IMG_HEIGHT_DIV2);
+      src_points[3].x = static_cast<MAT_TYPE>(-TEMPLATE_IMG_WIDTH_DIV2);
+      src_points[3].y = static_cast<MAT_TYPE>(TEMPLATE_IMG_HEIGHT_DIV2);
 
-      dst_points[0].x = dst_corners.at<MAT_TYPE>(0, 0); 
+      dst_points[0].x = dst_corners.at<MAT_TYPE>(0, 0);
       dst_points[0].y = dst_corners.at<MAT_TYPE>(0, 1);
       dst_points[1].x = dst_corners.at<MAT_TYPE>(1, 0);
       dst_points[1].y = dst_corners.at<MAT_TYPE>(1, 1);
       dst_points[2].x = dst_corners.at<MAT_TYPE>(2, 0);
       dst_points[2].y = dst_corners.at<MAT_TYPE>(2, 1);
+      dst_points[3].x = dst_corners.at<MAT_TYPE>(3, 0);
+      dst_points[3].y = dst_corners.at<MAT_TYPE>(3, 1);
 
+#ifdef USE_SIMILARITY_MODEL
+      Mat A           = Mat::zeros(2, 3, DataType<MAT_TYPE>::type);
+       
       A = cv::getAffineTransform(src_points, dst_points);
       
-      A.at<MAT_TYPE>(0,2) += template_image.cols/2;
-      A.at<MAT_TYPE>(1,2) += template_image.rows/2;
-
-      SHOW_VALUE(A);
       float dx = (src_points[1].x - src_points[0].x);
       float dy = (src_points[1].y - src_points[0].y);
       float angle = M_PI;
@@ -128,65 +127,49 @@ processFrame
       {
         angle = std::atan(dy/dx);
       }
-      motion_params =  (cv::Mat_<MAT_TYPE>(4,1) << A.at<MAT_TYPE>(0,2),  // tx
-                                                   A.at<MAT_TYPE>(1,2),  // ty
+      motion_params =  (cv::Mat_<MAT_TYPE>(4,1) << A.at<double>(0,2),  // tx
+                                                   A.at<double>(1,2),  // ty
                                                    angle,  // angle
-                                                   (A.at<MAT_TYPE>(0,0) + A.at<MAT_TYPE>(1,1))/2.0); // scale
+                                                   (A.at<double>(0,0) + A.at<double>(1,1))/2.0); // scale
 #elif defined(USE_AFFINE_MODEL) 
-      Mat A           = Mat::zeros(2, 3, DataType<MAT_TYPE>::type);
-      cv::Point2f src_points[3];
-      cv::Point2f dst_points[3];
+//      Mat A           = Mat::zeros(2, 3, DataType<MAT_TYPE>::type);
        
-      src_points[0].x = src_corners.at<MAT_TYPE>(0, 0); 
-      src_points[0].y = src_corners.at<MAT_TYPE>(0, 1);
-      src_points[1].x = src_corners.at<MAT_TYPE>(1, 0);
-      src_points[1].y = src_corners.at<MAT_TYPE>(1, 1);
-      src_points[2].x = src_corners.at<MAT_TYPE>(2, 0);
-      src_points[2].y = src_corners.at<MAT_TYPE>(2, 1);
-
-      dst_points[0].x = dst_corners.at<MAT_TYPE>(0, 0); 
+      dst_points[0].x = dst_corners.at<MAT_TYPE>(0, 0);
       dst_points[0].y = dst_corners.at<MAT_TYPE>(0, 1);
       dst_points[1].x = dst_corners.at<MAT_TYPE>(1, 0);
       dst_points[1].y = dst_corners.at<MAT_TYPE>(1, 1);
       dst_points[2].x = dst_corners.at<MAT_TYPE>(2, 0);
       dst_points[2].y = dst_corners.at<MAT_TYPE>(2, 1);
 
-      A = cv::getAffineTransform(src_points, dst_points);
-      
-      A.at<MAT_TYPE>(0,2) += template_image.cols/2;  // The (0,0) template coordinates are in (template_image.cols/2, template_image.rows/2)
-      A.at<MAT_TYPE>(1,2) += template_image.rows/2;
-
-      motion_params =  (cv::Mat_<MAT_TYPE>(6,1) << A.at<MAT_TYPE>(0,2),  // tx
-	                                           A.at<MAT_TYPE>(1,2),  // ty
-			                           A.at<MAT_TYPE>(0,0),  // a
-			                           A.at<MAT_TYPE>(1,0),  // b
-			                           A.at<MAT_TYPE>(0,1),  // c
-						   A.at<MAT_TYPE>(1,1)); // d
-
-      std::cout << "motion_params_detect = " << motion_params << std::endl;
+      cv::Mat A = cv::getAffineTransform(src_points, dst_points);
+      TRACE_INFO("A = " << A << std::endl);
+      motion_params =  (cv::Mat_<MAT_TYPE>(6,1) << A.at<double>(0,2),  // tx
+                                                   A.at<double>(1,2),  // ty
+                                                   A.at<double>(0,0),  // a
+                                                   A.at<double>(1,0),  // b
+                                                   A.at<double>(0,1),  // c
+                                                   A.at<double>(1,1)); // d
 
 #elif defined(USE_HOMOGRAPHY_MODEL) 
       Mat H           = Mat::zeros(3, 3, DataType<MAT_TYPE>::type);
       H = cv::findHomography(src_corners, dst_corners);
-      
-      cv::Mat TR  = (cv::Mat_<MAT_TYPE>(3,3) << 1.,    0,    template_image.cols/2., 
-		                                0,     1.,   template_image.rows/2., 
-		                                0,     0,    1.);
-      H      = H*TR;      
-      Mat Ht = H.t();
-      Ht.reshape(1, 9).copyTo(motion_params);
+      TRACE_INFO("H = " << H << std::endl);
+
+      cv::Mat Ht = H.t();
+      Ht.reshape(9,1).copyTo(motion_params);
 #else
   #error "Wrong motion model configuration"
 #endif
+      std::cout << "motion_params_detect_ = " << motion_params << std::endl;
       tracker.setInitialParams(motion_params);
       tracker.processFrame(frame);
-      std::cout << "motion_params_track = " << tracker.getMotionParams() << std::endl;
+      std::cout << "motion_params_track_ = " << tracker.getParams() << std::endl;
     }
   }
   else
   {
     tracker.processFrame(frame);
-    std::cout << "motion_params_track = " << tracker.getMotionParams() << std::endl;
+    std::cout << "motion_params_track = " << tracker.getParams() << std::endl;
   }
   ticks = static_cast<double>(cv::getTickCount()) - ticks;
 

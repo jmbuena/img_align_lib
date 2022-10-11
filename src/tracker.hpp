@@ -108,8 +108,8 @@ public:
     ) { if (num_pyramid_levels > 0) m_num_pyramid_levels = num_pyramid_levels; };
 
   cv::Mat
-  getMotionParams
-    () { return m_motion_params; }
+  getParams
+    () { return m_params; }
 
   MotionModelPtr
   getMotionModel
