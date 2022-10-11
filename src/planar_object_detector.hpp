@@ -23,8 +23,8 @@
 // ----------------------- INCLUDES --------------------------------------------
 #include <boost/shared_ptr.hpp>
 #include "viewer.hpp"
-#include "img_align_lib.hpp"
-#include <opencv/cv.h>
+//#include "img_align_lib.hpp"
+#include <opencv2/opencv.hpp>
 
 namespace upm { namespace pcr
 {
@@ -65,7 +65,7 @@ public:
    * @brief Locate the target object in the current frame.
    *
    * @param frame Image comming from the camera.
-   * @return returns false if the object has been found.
+   * @return returns false if the object has not been found.
    */
   virtual bool
   locateObject 

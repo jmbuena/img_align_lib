@@ -46,7 +46,7 @@ SingleImageModel::SingleImageModel
     
   if (template_image.channels() > 1)
   {    
-    cv::cvtColor(template_image, im_gray, CV_RGB2GRAY, 1);
+    cv::cvtColor(template_image, im_gray, cv::COLOR_RGB2GRAY, 1);
     m_template_image = im_gray;
   }
   else
@@ -64,8 +64,10 @@ SingleImageModel::SingleImageModel
   
 //   cv::imwrite("template_image_equalized.bmp", m_template_image);  
   m_gradients            = computeGrayImageGradients(m_template_image);
+//  m_gradients /= 255.0;
   m_template_image.reshape(1, num_pixels).convertTo(m_template_gray_levels, cv::DataType<MAT_TYPE>::type);
-  m_template_coordinates = computeTemplateCoordinates(m_template_image);    
+//  m_template_gray_levels /= 255.0;
+  m_template_coordinates = computeTemplateCoordinates(m_template_image);
   
   m_control_points_indices.push_back(0);
   m_control_points_indices.push_back(m_template_image.cols-1);
@@ -145,6 +147,8 @@ SingleImageModel::extractFeaturesFromWarpedImage
     warped_image.reshape(1, num_pixels).convertTo(warped_image_vector, cv::DataType<MAT_TYPE>::type);   
   }
 
+//  warped_image_vector /= 255;
+
   return warped_image_vector;
 }
   
@@ -165,7 +169,7 @@ SingleImageModel::computeTemplateFeatures
 {
   cv::Mat gray_levels;
   m_template_gray_levels.convertTo(gray_levels, cv::DataType<MAT_TYPE>::type);
-  
+
   return gray_levels;
 }
   

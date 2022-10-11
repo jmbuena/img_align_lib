@@ -24,8 +24,8 @@
 // ----------------------- INCLUDES --------------------------------------------
 #include <string>
 #include <exception>
-#include <opencv/cv.h> // OpenCV IplImage
-#include <opencv/highgui.h> // OpenCV IplImage
+#include <opencv2/opencv.hpp> // OpenCV IplImage
+//#include <opencv/highgui.h> // OpenCV IplImage
 
 namespace upm { namespace pcr
 {
@@ -84,7 +84,7 @@ public:
     int width,
     int height,
     std::string window_title
-    ) throw (viewer_creation_error);
+    );
 
   /** 
    *  @brief Drawing interface is double buffered. We need to swap buffers (begin-end). 
@@ -246,7 +246,7 @@ public:
   virtual void 
   image
     (
-    IplImage* pImage,
+    cv::Mat image,
     int x, 
     int y, 
     int width, 
@@ -266,8 +266,8 @@ protected:
   /** Set to true after calling init */
   bool m_initialised; 
 
-  IplImage* m_pCanvas;
-  IplImage* m_pBuffer;
+  cv::Mat m_canvas;
+  cv::Mat m_buffer;
   int m_width;
   int m_height;
   std::string m_window_title;

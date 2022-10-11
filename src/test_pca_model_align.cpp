@@ -1,4 +1,4 @@
-#include "opencv2/opencv.hpp"
+#include <opencv2/opencv.hpp>
 #include "viewer.hpp"
 #include "optimizerGN.hpp"
 // #include "single_image_model.hpp"
@@ -6,20 +6,21 @@
 #include "tracker.hpp"
 #include "trace.hpp"
 #include <limits>
+#include <string>
 
 using namespace cv;
 using namespace upm::pcr;
 
 #undef USE_TRACKING_AFTER_DETECTION
 
-const double TICKS_PER_SECOND       = (static_cast<double>(cvGetTickFrequency())*1.0e6);
-const double TICKS_PER_MILLISECOND  = (static_cast<double>(cvGetTickFrequency())*1.0e3);
+const double TICKS_PER_SECOND       = (static_cast<double>(cv::getTickFrequency())*1.0e6);
+const double TICKS_PER_MILLISECOND  = (static_cast<double>(cv::getTickFrequency())*1.0e3);
 const int FRAME_HEIGHT              = 480;
 const int FRAME_WIDTH               = 640;
 const int NUM_MAX_ITERATIONS        = 20;
 const bool SHOW_OPTIMIZER_ITERATION_COSTS = false;
 const int  NUM_PYRAMID_LEVELS       = 1;
-const std::string CASCADE_NAME      = "/usr/share/opencv/haarcascades/haarcascade_frontalface_alt2.xml";
+const std::string CASCADE_NAME      = "/usr/share/opencv4/haarcascades/haarcascade_frontalface_alt2.xml";
 
 #define USE_SIMILARITY_PCA_FACTORIZED_PROBLEM
 #undef USE_AFFINE_PCA_FACTORIZED_PROBLEM
@@ -62,7 +63,7 @@ findBiggestFace
   cv::Rect& face_rect
   )
 {
-  double ticks;
+//  double ticks;
   std::vector<cv::Rect> faces;
   double max_area;
 
@@ -70,7 +71,7 @@ findBiggestFace
         1.2, 2, 0
         //|CV_HAAR_FIND_BIGGEST_OBJECT
         //|CV_HAAR_DO_ROUGH_SEARCH
-        |CV_HAAR_SCALE_IMAGE,
+        |cv::CASCADE_SCALE_IMAGE,
         Size(80, 80) );
 
   max_area   = std::numeric_limits<double>::min();
@@ -104,7 +105,7 @@ double
 processFrame
   (
   Mat& frame,
-  Tracker& tracker,
+  upm::pcr::Tracker& tracker,
   cv::CascadeClassifier& cascade_classifier,
   bool& face_found,
   cv::Rect& face_rect,
@@ -115,10 +116,10 @@ processFrame
 {
   static bool first_time = true;
   double ticks;
-  MAT_TYPE width, height, x_center, y_center, x_scale, y_scale;
-  
+  MAT_TYPE width, height, x_center, y_center, x_scale, y_scale, scale;
+
   face_found = false;
-  ticks      = static_cast<double>(cvGetTickCount());
+  ticks      = static_cast<double>(cv::getTickCount());
   
 #ifndef USE_TRACKING_AFTER_DETECTION
   if (tracker.isLost() || first_time)  
@@ -136,20 +137,21 @@ processFrame
       height  *= 0.8;
       x_scale  = width/static_cast<MAT_TYPE>(model_pixels_width);
       y_scale  = height/static_cast<MAT_TYPE>(model_pixels_height);
+      scale = (x_scale + y_scale) / 2.0;
       
 #ifdef USE_SIMILARITY_MODEL   
       cv::Mat initial_params            = cv::Mat::zeros(4 + num_appearance_params, 1, cv::DataType<MAT_TYPE>::type);  
       cv::Mat initial_motion_params_ref = initial_params(cv::Range(0,4), cv::Range::all());
       cv::Mat initial_motion_params     = (cv::Mat_<MAT_TYPE>(4,1) <<  x_center, y_center,
 		                                                       0., 
-			                                               y_scale);
+								       scale);
       initial_motion_params.copyTo(initial_motion_params_ref); 
       
 #elif defined(USE_AFFINE_MODEL)     
       cv::Mat initial_params = cv::Mat::zeros(6 + num_appearance_params, 1, cv::DataType<MAT_TYPE>::type);  
       cv::Mat initial_motion_params_ref = initial_params(cv::Range(0,6), cv::Range::all());
       cv::Mat initial_motion_params = (cv::Mat_<MAT_TYPE>(6,1) << x_center, y_center, 
- 			                                          x_scale, 0.,  0., y_scale);
+                                                                  x_scale, 0.,  0., scale);
       initial_motion_params.copyTo(initial_motion_params_ref); 
 #else
    #error "Wrong motion model"
@@ -166,7 +168,7 @@ processFrame
  }
 #endif
   
-  ticks = static_cast<double>(cvGetTickCount()) - ticks;
+  ticks = static_cast<double>(cv::getTickCount()) - ticks;
 
   return ticks;
 }
@@ -180,12 +182,12 @@ processFrame
 // Restrictions and Caveats:
 //
 // -----------------------------------------------------------------------------
-double
+void
 showResults
   (
   Mat& frame,
   Viewer& viewer, 
-  Tracker& tracker,
+  upm::pcr::Tracker& tracker,
   bool& face_found, 
   cv::Rect& face_rect,
   time_t ticks
@@ -206,8 +208,7 @@ showResults
 
   // Drawing results
   viewer.beginDrawing(); 
-  IplImage ipl_frame = frame;
-  viewer.image(&ipl_frame, 0, 0, frame.cols, frame.rows);
+  viewer.image(frame, 0, 0, frame.cols, frame.rows);
   if (face_found)
   {
     viewer.rectangle(face_rect.x, face_rect.y, face_rect.width, face_rect.height, 2, green_color);
@@ -241,7 +242,7 @@ main
   )
 {
   Viewer viewer;
-  bool viewer_initialized = false;
+//  bool viewer_initialized = false;
   Mat frame_cap;
   Mat frame;
 //   Mat template_image;
@@ -250,6 +251,7 @@ main
   cv::Rect face_rect;
   bool face_found = false;
   std::string cascade_name = CASCADE_NAME; 
+  std::string input_name;
   double max_cost_function_value = 0.0;
   
   if (argc == 0)
@@ -259,7 +261,7 @@ main
 
   const std::string cascade_opt = "--cascade=";
   size_t cascade_opt_len = cascade_opt.length();
-  string inputName;
+  std::string inputName;
   for (int i = 1; i < argc; i++) 
   {
     TRACE_INFO("Processing argument #" << i << ": " <<  argv[i] << std::endl);
@@ -272,10 +274,10 @@ main
     {
       TRACE_ERROR("WARNING: Unknown option " << argv[i] << std::endl);
     }
-//     else
-//     {
-//       input_name = argv[i];
-//     }
+    else
+    {
+      input_name = argv[i];
+    }
   }
 
   cv::CascadeClassifier cascade_classifier;
@@ -285,10 +287,10 @@ main
      return -1;
   }
     
-//   cv::VideoCapture cap(input_name); // open the default camera
-  cv::VideoCapture cap(0); // open the default camera
-  cap.set(CV_CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
-  cap.set(CV_CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
+  cv::VideoCapture cap(input_name); // open the default camera
+//  cv::VideoCapture cap(0); // open the default camera
+  cap.set(cv::CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
+  cap.set(cv::CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
   if (!cap.isOpened())  // check if we succeeded
   {      
     return -1;
@@ -331,7 +333,7 @@ main
 #endif
     static OptimizerPtr optimizer_ptr(dynamic_cast<Optimizer*>(new GaussNewtonOptimizer(optim_problem_ptr))); 
     optimizer_ptr->setShowIterations(SHOW_OPTIMIZER_ITERATION_COSTS);
-    static Tracker tracker(optimizer_ptr);      
+    static upm::pcr::Tracker tracker(optimizer_ptr);
     tracker.setNumPyramidLevels(NUM_PYRAMID_LEVELS);
     tracker.setMaximalCostFunctionValue(max_cost_function_value);
     static bool is_first_time = true;

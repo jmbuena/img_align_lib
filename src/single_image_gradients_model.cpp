@@ -127,7 +127,7 @@ SingleImageGradientsModel::extractFeaturesFromWarpedImage
   {    
     gradients = computeGrayImageGradients(warped_image);
   }
-  
+
 //   for (int i=0; i<gradients.rows; i++)
 //   {
 //     MAT_TYPE grad_x = gradients.at<MAT_TYPE>(0,0); 

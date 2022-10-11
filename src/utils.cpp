@@ -13,9 +13,9 @@
 // -----------------------------------------------------------------------------
 
 // ----------------------- INCLUDES --------------------------------------------
-#include <opencv/cv.h>
+#include <opencv2/opencv.hpp>
 #include "utils.hpp"
-#include "trace.hpp"
+//#include "trace.hpp"
 
 namespace upm { namespace pcr {
   
@@ -44,7 +44,7 @@ computeGrayImageGradients
     
   if (image.channels() > 1)
   {    
-    cv::cvtColor(image, gray_image, CV_RGB2GRAY, 1);
+    cv::cvtColor(image, gray_image, cv::COLOR_RGB2GRAY, 1);
   }
   else
   {
@@ -112,7 +112,7 @@ computeGrayImageHessians
   
   if (image.channels() > 1)
   {    
-    cv::cvtColor(image, gray_image, CV_RGB2GRAY, 1);
+    cv::cvtColor(image, gray_image, cv::COLOR_RGB2GRAY, 1);
   }
   else
   {

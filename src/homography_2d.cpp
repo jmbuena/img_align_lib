@@ -154,7 +154,7 @@ Homography2D::transformCoordsToImage
   // Divide by the third homogeneous coordinates to get the cartersian coordinates.
   for (int j=0; j<3; j++)
   {
-    cv::Mat col     = homogeneous_new_coords.col(j).mul(1.0 / homogeneous_new_coords.col(2));
+    cv::Mat col     = homogeneous_new_coords.col(j) / homogeneous_new_coords.col(2);
     cv::Mat col_new = homogeneous_new_coords.col(j);
     col.copyTo(col_new);
   }

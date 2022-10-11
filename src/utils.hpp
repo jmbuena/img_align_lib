@@ -17,8 +17,8 @@
 #define _UTILS_H_
 
 // ----------------------- INCLUDES --------------------------------------------
-#include <opencv/cv.h> // OpenCV IplImage
-#include <opencv/highgui.h> // OpenCV IplImage
+#include <opencv2/opencv.hpp> // OpenCV IplImage
+//#include <opencv/highgui.h> // OpenCV IplImage
 #include "img_align_lib.hpp"
 
 namespace upm { namespace pcr {

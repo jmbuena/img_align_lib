@@ -135,7 +135,7 @@ Tracker::processFrame
   width  = floor(frame.cols/2.0);
   height = floor(frame.rows/2.0);
   dst    = frame;
-  for (int i=0; i < (m_num_pyramid_levels - 1); i++)
+  for (size_t i=0; i < (m_num_pyramid_levels - 1); i++)
   {
     cv::pyrDown(dst, dst, cv::Size(width, height));
     pyramid.push_back(dst);
@@ -212,7 +212,7 @@ Tracker::showResults
   motion_params = m_params(cv::Range(0, m_motion_model->getNumParams()), cv::Range::all());
   image_coords  = m_motion_model->transformCoordsToImage(m_template_coords, motion_params);
 
-  for (int i=0; i < m_ctrl_points_lines.size(); i++)
+  for (size_t i=0; i < m_ctrl_points_lines.size(); i++)
   {
     index1 = m_ctrl_points_lines[i].p1_index;
     index2 = m_ctrl_points_lines[i].p2_index;
@@ -225,7 +225,7 @@ Tracker::showResults
     viewer.line(x1, y1, x2, y2, 2, white);
   };
 
-  for (int i=0; i < m_ctrl_points_indices.size(); i++)
+  for (size_t i=0; i < m_ctrl_points_indices.size(); i++)
   {
     index1 = m_ctrl_points_indices[i];
     
@@ -251,8 +251,8 @@ Tracker::isLost
 { 
   cv::Mat image_coords;
   int index1, index2;
-  int x, y;
-  int min_x, max_x, min_y, max_y;
+  int x1, y1, x2, y2;
+  //int min_x, max_x, min_y, max_y;
   int area;
   double last_cost;
   std::vector<double> iteration_costs;
@@ -266,31 +266,60 @@ Tracker::isLost
 
   // Find the area of the bounding box of the object: 
   // if it is too small we have lost tracking.
-  min_x = std::numeric_limits<int>::max();
-  max_x = std::numeric_limits<int>::min();
-  min_y = std::numeric_limits<int>::max();
-  max_y = std::numeric_limits<int>::min();
-  for (int i=0; i < m_ctrl_points_indices.size(); i++)
+//  min_x = std::numeric_limits<int>::max();
+//  max_x = std::numeric_limits<int>::min();
+//  min_y = std::numeric_limits<int>::max();
+//  max_y = std::numeric_limits<int>::min();
+
+  area = 0.0;
+  for (size_t i=0; i < m_ctrl_points_indices.size(); i++)
   {
+//    std::cout << "image_coords=" << image_coords << std::endl;
+    std::cout << "m_ctrl_points_indices.size()=" << m_ctrl_points_indices.size() << std::endl;
     index1 = m_ctrl_points_indices[i];
-    
-    x = static_cast<int>(image_coords.at<MAT_TYPE>(index1,0));
-    y = static_cast<int>(image_coords.at<MAT_TYPE>(index1,1));    
-    
-    min_x = std::min(x, min_x);
-    max_x = std::max(x, max_x);
-    min_y = std::min(y, min_y);
-    max_y = std::max(y, max_y);
+    if (i == (m_ctrl_points_indices.size()-1))
+    {
+      index2 = m_ctrl_points_indices[0];
+    }
+    else
+    {
+      index2 = m_ctrl_points_indices[i+1];
+    }
+
+    x1 = static_cast<int>(image_coords.at<MAT_TYPE>(index1,0));
+    y1 = static_cast<int>(image_coords.at<MAT_TYPE>(index1,1));
+    x2 = static_cast<int>(image_coords.at<MAT_TYPE>(index2,0));
+    y2 = static_cast<int>(image_coords.at<MAT_TYPE>(index2,1));
+
+//    std::cout << "index1, x1, y1 =" << index1 << "," << x1 << ", " << y1 << std::endl;
+//    std::cout << "index2, x2, y2 =" << index2 << "," << x2 << ", " << y2 << std::endl;
+
+    area += (x1 + x2) * (y2 - y1);
+
+//    TRACE_INFO(" area =" << area << std::endl);
+//    TRACE_INFO(" MIN_OBJECT_AREA =" << MIN_OBJECT_AREA << std::endl);
+
+//    min_x = std::min(x, min_x);
+//    max_x = std::max(x, max_x);
+//    min_y = std::min(y, min_y);
+//    max_y = std::max(y, max_y);
   };
+
   
-  area = (max_x - min_x) * (max_y - min_y);
+//  area = (max_x - min_x) * (max_y - min_y);
+  area /= 2.0;
 
   iteration_costs = m_optimizer->getIterationsCosts();
   last_cost = iteration_costs[iteration_costs.size()-1];
-  
-  return (area < MIN_OBJECT_AREA) ||
-         (last_cost > m_max_cost) ||
-         (m_motion_model->invalidParams(m_motion_params));
+
+  TRACE_INFO("last_cost=" << last_cost << std::endl);
+  TRACE_INFO("m_max_cost=" << m_max_cost << std::endl);
+
+//  return (area < MIN_OBJECT_AREA) ||
+//         (last_cost > m_max_cost) ||
+//         (m_motion_model->invalidParams(m_motion_params));
+  return (last_cost > m_max_cost); // ||
+         //(m_motion_model->invalidParams(m_motion_params));
 }
 
 } } // namespace

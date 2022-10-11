@@ -25,7 +25,7 @@
 #include "object_model.hpp"
 #include <boost/shared_ptr.hpp>
 #include <vector>
-#include <opencv/cv.h>
+#include <opencv2/opencv.hpp>
 #include "img_align_lib.hpp"
 
 namespace upm { namespace pcr

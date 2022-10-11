@@ -158,7 +158,7 @@ Homography2DFactorizedProblem::computeResidual
   
   if (warped_image.channels() == 3)
   {
-    cvtColor(warped_image, warped_image_gray, CV_RGB2GRAY);
+    cvtColor(warped_image, warped_image_gray, cv::COLOR_RGB2GRAY);
   }
   else
   {

@@ -1,4 +1,4 @@
-#include "opencv2/opencv.hpp"
+//#include "opencv2/opencv.hpp"
 #include <boost/concept_check.hpp>
 #include "viewer.hpp"
 #include "optimizerGN.hpp"
@@ -11,23 +11,24 @@ using namespace cv;
 using namespace upm::pcr;
 namespace po = boost::program_options;
 
-const double TICKS_PER_SECOND       = (static_cast<double>(cvGetTickFrequency())*1.0e6);
-const double TICKS_PER_MILLISECOND  = (static_cast<double>(cvGetTickFrequency())*1.0e3);
+const double TICKS_PER_SECOND       = (static_cast<double>(cv::getTickFrequency())*1.0e6);
+const double TICKS_PER_MILLISECOND  = (static_cast<double>(cv::getTickFrequency())*1.0e3);
 const int FRAME_HEIGHT              = 480;
 const int FRAME_WIDTH               = 640;
 const int TEMPLATE_IMG_WIDTH        = 75;
 const int TEMPLATE_IMG_HEIGHT       = 75;
 const double TEMPLATE_SCALE         = 3;
 const bool TEMPLATE_EQUALIZATION    = true;
-const int NUM_MAX_ITERATIONS        = 30;
+const int NUM_MAX_ITERATIONS        = 40;
 const bool SHOW_OPTIMIZER_ITERATION_COSTS = true;
-const int  NUM_PYRAMID_LEVELS       = 2;
-const float MAX_COST_FUNCTION_VALUE = 8.E+7;
+const int  NUM_PYRAMID_LEVELS       = 1;
+const float MAX_COST_FUNCTION_VALUE = 8.E+8;
+//const float MAX_COST_FUNCTION_VALUE = 1800;
 // const int SURF_HESSIAN_THRESHOLD    = 200;
 
 #undef USE_HOMOGRAPHY_FACTORIZED_PROBLEM
-#undef USE_AFFINE_FACTORIZED_PROBLEM
-#define USE_SIMILARITY_FACTORIZED_PROBLEM
+#define USE_AFFINE_FACTORIZED_PROBLEM
+#undef USE_SIMILARITY_FACTORIZED_PROBLEM
 #undef USE_SIMILARITY_CORR_GRAD_INV_COMP_PROBLEM
 
 #ifdef USE_SIMILARITY_FACTORIZED_PROBLEM 
@@ -40,7 +41,7 @@ const float MAX_COST_FUNCTION_VALUE = 8.E+7;
   #include "affine_2d.hpp"
   #include "affine_2d_factorized_problem.hpp"
   #define USE_AFFINE_MODEL
-#elif defined(USE_HOMOGRAPHY_cv::INTER_NEAREST;FACTORIZED_PROBLEM)
+#elif defined(USE_HOMOGRAPHY_FACTORIZED_PROBLEM)
   #include "single_image_model.hpp"
   #include "homography_2d.hpp"
   #include "homography_2d_factorized_problem.hpp"
@@ -70,23 +71,21 @@ processFrame
   (
   Mat& frame,
   Mat& template_image,
-  Tracker& tracker,
+  upm::pcr::Tracker& tracker,
   upm::pcr::PlanarObjectDetector& detector
   )
 {
   double ticks;
-  static bool first_time = true;
+//  static bool first_time = true;
   Mat frame_gray;
   Mat template_gray;
-  static CvSeq* objectKeypoints   = NULL;
-  static CvSeq* objectDescriptors = NULL;
-  static CvMemStorage* storage    = cvCreateMemStorage(0);
   Mat motion_params;
 
-  ticks = static_cast<double>(cvGetTickCount());
+  ticks = static_cast<double>(cv::getTickCount());
   
   if (tracker.isLost())
   {
+    std::cout << "1 ===== HA PASADO!!!!!" << std::endl;
     Mat src_corners = (cv::Mat_<MAT_TYPE>(4, 2) << 0,                   0,
                                                    template_image.cols, 0,
                                                    template_image.cols, template_image.rows,
@@ -95,10 +94,12 @@ processFrame
     src_corners.copyTo(dst_corners);
     if (detector.locateObject(frame, src_corners, dst_corners))
     {
+      std::cout << "2 ===== HA PASADO!!!!!" << std::endl;
+
 #ifdef USE_SIMILARITY_MODEL
       Mat A           = Mat::zeros(2, 3, DataType<MAT_TYPE>::type);
-      CvPoint2D32f src_points[3];
-      CvPoint2D32f dst_points[3];
+      cv::Point2f src_points[3];
+      cv::Point2f dst_points[3];
        
       src_points[0].x = src_corners.at<MAT_TYPE>(0, 0); 
       src_points[0].y = src_corners.at<MAT_TYPE>(0, 1);
@@ -114,11 +115,10 @@ processFrame
       dst_points[2].x = dst_corners.at<MAT_TYPE>(2, 0);
       dst_points[2].y = dst_corners.at<MAT_TYPE>(2, 1);
 
-      CvMat Acvmat    = A;
-      cvGetAffineTransform(src_points, dst_points, &Acvmat);     
+      A = cv::getAffineTransform(src_points, dst_points);
       
       A.at<MAT_TYPE>(0,2) += template_image.cols/2;
-      A.at<MAT_TYPE>(1,2) += template_image.cols/2;
+      A.at<MAT_TYPE>(1,2) += template_image.rows/2;
 
       SHOW_VALUE(A);
       float dx = (src_points[1].x - src_points[0].x);
@@ -134,8 +134,8 @@ processFrame
                                                    (A.at<MAT_TYPE>(0,0) + A.at<MAT_TYPE>(1,1))/2.0); // scale
 #elif defined(USE_AFFINE_MODEL) 
       Mat A           = Mat::zeros(2, 3, DataType<MAT_TYPE>::type);
-      CvPoint2D32f src_points[3];
-      CvPoint2D32f dst_points[3];
+      cv::Point2f src_points[3];
+      cv::Point2f dst_points[3];
        
       src_points[0].x = src_corners.at<MAT_TYPE>(0, 0); 
       src_points[0].y = src_corners.at<MAT_TYPE>(0, 1);
@@ -151,24 +151,23 @@ processFrame
       dst_points[2].x = dst_corners.at<MAT_TYPE>(2, 0);
       dst_points[2].y = dst_corners.at<MAT_TYPE>(2, 1);
 
-      CvMat Acvmat    = A;
-      cvGetAffineTransform(src_points, dst_points, &Acvmat);     
+      A = cv::getAffineTransform(src_points, dst_points);
       
-      A.at<MAT_TYPE>(0,2) += template_image.cols/2;
-      A.at<MAT_TYPE>(1,2) += template_image.cols/2;
+      A.at<MAT_TYPE>(0,2) += template_image.cols/2;  // The (0,0) template coordinates are in (template_image.cols/2, template_image.rows/2)
+      A.at<MAT_TYPE>(1,2) += template_image.rows/2;
 
       motion_params =  (cv::Mat_<MAT_TYPE>(6,1) << A.at<MAT_TYPE>(0,2),  // tx
 	                                           A.at<MAT_TYPE>(1,2),  // ty
 			                           A.at<MAT_TYPE>(0,0),  // a
 			                           A.at<MAT_TYPE>(1,0),  // b
 			                           A.at<MAT_TYPE>(0,1),  // c
-			                           A.at<MAT_TYPE>(1,1));  // d      
+						   A.at<MAT_TYPE>(1,1)); // d
+
+      std::cout << "motion_params_detect = " << motion_params << std::endl;
+
 #elif defined(USE_HOMOGRAPHY_MODEL) 
       Mat H           = Mat::zeros(3, 3, DataType<MAT_TYPE>::type);
-      CvMat Hcvmat    = H;
-      CvMat src_cvmat = src_corners;
-      CvMat dst_cvmat = dst_corners;
-      cvFindHomography(&src_cvmat, &dst_cvmat, &Hcvmat);     
+      H = cv::findHomography(src_corners, dst_corners);
       
       cv::Mat TR  = (cv::Mat_<MAT_TYPE>(3,3) << 1.,    0,    template_image.cols/2., 
 		                                0,     1.,   template_image.rows/2., 
@@ -181,13 +180,15 @@ processFrame
 #endif
       tracker.setInitialParams(motion_params);
       tracker.processFrame(frame);
+      std::cout << "motion_params_track = " << tracker.getMotionParams() << std::endl;
     }
   }
   else
   {
     tracker.processFrame(frame);
+    std::cout << "motion_params_track = " << tracker.getMotionParams() << std::endl;
   }
-  ticks = static_cast<double>(cvGetTickCount()) - ticks;
+  ticks = static_cast<double>(cv::getTickCount()) - ticks;
 
   return ticks;
 }
@@ -201,12 +202,12 @@ processFrame
 // Restrictions and Caveats:
 //
 // -----------------------------------------------------------------------------
-double
+void
 showResults
   (
   Mat& frame,
-  Viewer& viewer, 
-  Tracker& tracker,
+  upm::pcr::Viewer& viewer,
+  upm::pcr::Tracker& tracker,
   upm::pcr::PlanarObjectDetector& detector,
   time_t ticks
   )
@@ -225,8 +226,7 @@ showResults
 
   // Drawing results
   viewer.beginDrawing(); 
-  IplImage ipl_frame = frame;
-  viewer.image(&ipl_frame, 0, 0, frame.cols, frame.rows);
+  viewer.image(frame, 0, 0, frame.cols, frame.rows);
   if (!tracker.isLost())
   {
     tracker.showResults(viewer, frame);
@@ -255,8 +255,8 @@ getTemplate
   Viewer& viewer, 
   cv::Mat& initial_params,
   bool& have_template,
-  bool is_video_file,
-  time_t ticks
+  bool is_video_file//,
+//  time_t ticks
   )
 {
   float red_color[3] = {1.0, 0.0, 0.0};
@@ -272,8 +272,7 @@ getTemplate
 
   // Drawing results
   viewer.beginDrawing(); 
-  IplImage ipl_frame = frame;
-  viewer.image(&ipl_frame, 0, 0, frame.cols, frame.rows);
+  viewer.image(frame, 0, 0, frame.cols, frame.rows);
 #ifdef USE_SIMILARITY_MODEL
   double scale = initial_params.at<MAT_TYPE>(3,0);
   #ifdef USE_COMPOSITIONAL_MODEL
@@ -298,12 +297,14 @@ getTemplate
 #endif
   viewer.rectangle(left, top, width, height, 2, red_color);
   viewer.endDrawing();  
-  
-  if ((waitKey(10) > 0) || (is_video_file))
+
+  char key = waitKey(10);
+  if ((key == 't')) // || (is_video_file))
   {
     have_template        = true;
     cv::Mat template_roi = frame(cv::Rect(left, top, width, height));
-    cv::resize(template_roi, template_image, Size(TEMPLATE_IMG_WIDTH, TEMPLATE_IMG_HEIGHT));
+//    cv::resize(template_roi, template_image, Size(TEMPLATE_IMG_WIDTH, TEMPLATE_IMG_HEIGHT));
+    template_roi.copyTo(template_image);
     imwrite("template_image.bmp", template_image);
   }
 
@@ -327,10 +328,11 @@ main
   )
 {
   Viewer viewer;
-  bool viewer_initialized = false;
+//  bool viewer_initialized = false;
   Mat frame_cap;
   Mat frame;
   Mat template_image;
+  Mat template_image_detection;
   double ticks;
   bool have_template = false;
   cv::Mat initial_params;
@@ -393,8 +395,8 @@ main
   else
   {
     cap.open(0); // open the default camera
-    cap.set(CV_CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
-    cap.set(CV_CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
+    cap.set(cv::CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
+    cap.set(cv::CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
   }
 
   if (!cap.isOpened())  // check if we succeeded
@@ -434,7 +436,8 @@ main
     
     if (!have_template)
     {
-      template_image = getTemplate(frame, viewer, initial_params, have_template, use_video_file, ticks);
+      template_image_detection = getTemplate(frame, viewer, initial_params, have_template, use_video_file); //, ticks);
+      cv::resize(template_image_detection, template_image, Size(TEMPLATE_IMG_WIDTH, TEMPLATE_IMG_HEIGHT));
     }
     else
     {
@@ -465,9 +468,9 @@ main
 
       static OptimizerPtr optimizer_ptr(dynamic_cast<Optimizer*>(new GaussNewtonOptimizer(optim_problem_ptr))); 
       optimizer_ptr->setShowIterations(SHOW_OPTIMIZER_ITERATION_COSTS);
-      static Tracker tracker(optimizer_ptr);      
+      static upm::pcr::Tracker tracker(optimizer_ptr);
       tracker.setNumPyramidLevels(NUM_PYRAMID_LEVELS);
-      static upm::pcr::PlanarObjectDetector detector(template_image);
+      static upm::pcr::PlanarObjectDetector detector(template_image_detection);
       static bool is_first_time = true;
 
       if (is_first_time)

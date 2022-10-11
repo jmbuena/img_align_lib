@@ -27,7 +27,7 @@
 #include "motion_model.hpp"
 #include <vector>
 #include <exception>
-#include "img_align_lib.hpp"
+//#include "img_align_lib.hpp"
 
 namespace upm { namespace pcr
 {
@@ -109,11 +109,11 @@ public:
 
   cv::Mat
   getMotionParams
-    ();
+    () { return m_motion_params; }
 
   MotionModelPtr
   getMotionModel
-    ();
+    () { return m_motion_model; }
 
   /**
    * @brief Sets the maximal cost function value for declare sucess in tracking.

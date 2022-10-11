@@ -21,7 +21,7 @@
 #define OPTIMIZER_GN_HPP
 
 // ----------------------- INCLUDES --------------------------------------------
-#include <opencv/cv.h>
+#include <opencv2/opencv.hpp>
 #include "optimizer.hpp"
 
 namespace upm { namespace pcr

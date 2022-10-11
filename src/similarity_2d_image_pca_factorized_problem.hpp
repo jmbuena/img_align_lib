@@ -24,7 +24,7 @@
 #include "image_pca_factorized_problem.hpp"
 #include <boost/shared_ptr.hpp>
 #include <vector>
-#include <opencv/cv.h>
+#include <opencv2/opencv.hpp>
 
 namespace upm { namespace pcr
 {

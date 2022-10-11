@@ -18,27 +18,39 @@ set(MY_BUILD_NUMBER 1)    # Increase when fixing a an error.
 #   @ONLY)
 # ------- END VERSION INFORMATION ------
 
+### ----------------- CPP CONFIGURATION -----------------------------------------
+
+# Allows generated files in the current directed to be found by the compiler
+#SET(CMAKE_INCLUDE_CURRENT_DIR ON)
+# Remove deprecation warnings
+set(CMAKE_WARN_DEPRECATED FALSE)
+# Full compiler output
+set(CMAKE_VERBOSE_MAKEFILE ON)
+# C++11 and beyond
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 #-- Type of build
 #SET(CMAKE_BUILD_TYPE Debug)
 #SET(CMAKE_BUILD_TYPE Release)
-SET(CMAKE_BUILD_TYPE RelwithDebugInfo)
+#SET(CMAKE_BUILD_TYPE RelwithDebugInfo)
 
 # REQUIRED: stops processing with an error if the package cannot be found.
 FIND_PACKAGE(OpenCV REQUIRED)
-FIND_PACKAGE(Boost REQUIRED)
-
 MESSAGE("OpenCV information:")
 MESSAGE("   > OpenCV_INCLUDE_DIRS: ${OpenCV_INCLUDE_DIRS}")
 MESSAGE("   > OpenCV_LIB_DIR: ${OpenCV_LIB_DIR}")
 MESSAGE("   > OpenCV_LIBS: ${OpenCV_LIBS}")
 
+FIND_PACKAGE(Boost REQUIRED)
 MESSAGE("Boost information:")
 MESSAGE("   > Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
 MESSAGE("   > Boost_LIBRARY_DIRS: ${Boost_LIBRARY_DIRS}")
 MESSAGE("   > Boost_LIBRARIES: ${Boost_LIBRARIES}")
 
-INCLUDE_DIRECTORIES( ${OpenCV_INCLUDE_DIRS} C:/OpenCV2.1/include E:/Archivos\ de\ programa/boost/boost_1_44 /usr/include .)
-LINK_DIRECTORIES( ${OpenCV_LINKS_DIR} /usr/lib )
+#INCLUDE_DIRECTORIES( ${OpenCV_INCLUDE_DIRS} C:/OpenCV2.1/include E:/Archivos\ de\ programa/boost/boost_1_44 /usr/include .)
+#LINK_DIRECTORIES( ${OpenCV_LINKS_DIR} /usr/lib )
 
 ADD_LIBRARY(img_align SHARED 
   image_pca_factorized_problem.hpp

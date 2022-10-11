@@ -48,7 +48,7 @@ ImagePCAModel::ImagePCAModel
   int num_pixels = img_cols * img_rows;
    
   assert(mean.rows > mean.cols);
-  assert(mean.rows == img_cols * img_rows);
+  assert(mean.rows == num_pixels);
   assert(B.rows == mean.rows);
 
   m_B               = B;
@@ -141,8 +141,10 @@ ImagePCAModel::computeTemplateFeaturesGradient
   cv::Mat object_params
   )
 { 
-   //return m_gradients;
-};
+   // FIXME: This is returning the wrong value for the gradients.
+   cv::Mat gradients;
+   return gradients;
+}
   
     
 // -----------------------------------------------------------------------------

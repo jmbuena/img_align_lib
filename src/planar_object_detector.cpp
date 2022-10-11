@@ -17,7 +17,7 @@
 // -----------------------------------------------------------------------------
 #include "planar_object_detector.hpp"
 #include <opencv2/features2d/features2d.hpp>
-//#include <opencv2/nonfree/nonfree.hpp>
+#include "img_align_lib.hpp"
 #include "trace.hpp"
 
 namespace upm { namespace pcr
@@ -39,31 +39,35 @@ PlanarObjectDetector::PlanarObjectDetector
 {
   if (template_image.channels() == 3)
   {
-    cvtColor(template_image, m_template_image, CV_BGR2GRAY);
+    cv::cvtColor(template_image, m_template_image, cv::COLOR_BGR2GRAY);
   }
   else
   {
     template_image.copyTo(m_template_image);
   }
   
-//  m_detector                 = cv::FeatureDetector::create( "SURF" );
-//  m_detector->set("hessianThreshold", 100.);
-//  m_detector->set("nOctaveLayers", 4);
-//  m_detector->set("nOctaves", 3);
-//  m_descriptorExtractor      = cv::DescriptorExtractor::create( "SURF" );
-//  m_descriptorMatcher        = cv::DescriptorMatcher::create("FlannBased");
+//  m_detector                 = cv::SURF::create(100, 4, 3);
+////  m_detector->set("hessianThreshold", 100.);
+////  m_detector->set("nOctaveLayers", 4);
+////  m_detector->set("nOctaves", 3);
+//  m_descriptorExtractor      = m_detector;
+//  m_descriptorMatcher        = cv::DescriptorMatcher::create("BruteForce-L2");
+////  m_descriptorMatcher        = cv::DescriptorMatcher::create("FlannBased");
 
-//  m_detector                 = cv::FeatureDetector::create( "ORB" );
-//  m_descriptorExtractor      = cv::DescriptorExtractor::create( "ORB" );
+//  m_detector                 = cv::ORB::create();
+//  m_descriptorExtractor      = cv::ORB::create();
 
-  m_detector                  = cv::FeatureDetector::create( "FAST" );
-//  m_detector->set("threshold", 30); // 10
-//  m_detector->set("nonmaxSuppression", true); // true
-  m_descriptorExtractor      = cv::DescriptorExtractor::create( "BRISK" );
-  m_descriptorMatcher        = cv::DescriptorMatcher::create("BruteForce-Hamming");
+  m_detector                 = cv::SIFT::create();
+  m_descriptorExtractor      = cv::SIFT::create();
+  m_descriptorMatcher        = cv::DescriptorMatcher::create("FlannBased");
+
+  //  m_detector                 = cv::FastFeatureDetector::create(30, true);
+//  m_descriptorExtractor      = cv::ORB::create();
+//  m_descriptorMatcher        = cv::DescriptorMatcher::create("BruteForce-Hamming");
+////  m_descriptorMatcher        = cv::DescriptorMatcher::create("FlannBased");
 
   m_maxRansacReprojError     = 3;
-  m_minNumInliersPercentage  = 0.4;
+  m_minNumInliersPercentage  = 0.3;
   
   m_H                        = cv::Mat::eye(3, 3, cv::DataType<MAT_TYPE>::type);
   m_num_inliers              = 0;
@@ -120,7 +124,7 @@ PlanarObjectDetector::locateObject
     std::vector<cv::Mat> descriptors;
     descriptors.push_back(m_template_descriptors);
     m_descriptorMatcher->add(descriptors);
-    m_descriptorMatcher->train();
+    m_descriptorMatcher->train(); // Build the lookup structures for descriptors
   }
   
   // ----------------------------------------------------------------
@@ -128,7 +132,7 @@ PlanarObjectDetector::locateObject
   // ----------------------------------------------------------------
   if (frame.channels() == 3)
   {
-    cvtColor(frame, frame_gray, CV_BGR2GRAY);
+    cv::cvtColor(frame, frame_gray, cv::COLOR_BGR2GRAY);
   }
   else
   {
@@ -150,19 +154,19 @@ PlanarObjectDetector::locateObject
   m_descriptorMatcher->knnMatch(m_frame_descriptors, matches12, 2);
   std::vector<int> templateIdxs;
   std::vector<int> frameIdxs;
-  for (int i=0; i < matches12.size(); i++) 
-  { 
-    if (matches12[i].size() < 2)
+  for (auto& dmatches: matches12)
+  {
+    if (dmatches.size() < 2)
     {
       break;
     }
     
-    cv::DMatch first  = matches12[i][0];
-    cv::DMatch second = matches12[i][1]; 
-    
+    cv::DMatch first  = dmatches[0];
+    cv::DMatch second = dmatches[1];
+
     // We declare a match if the most similar descriptor is far more 
     // near than the second most similar descriptor.
-    if (first.distance < 0.6*second.distance) 
+    if (first.distance < 0.7*second.distance)
     {
       m_filtered_matches.push_back(first);
       templateIdxs.push_back(first.trainIdx);
@@ -170,9 +174,10 @@ PlanarObjectDetector::locateObject
     }
   }
 
-  if (m_filtered_matches.size() < 4)
+  if (m_filtered_matches.size() < 10)
   {
-    return m_object_found;
+    TRACE_INFO(" m_filtered_matches.size() < 10" << std::endl);
+    return false;
   }
   
   // ----------------------------------------------------------------
@@ -180,7 +185,8 @@ PlanarObjectDetector::locateObject
   // ----------------------------------------------------------------
   cv::KeyPoint::convert(m_template_keypoints, template_points, templateIdxs);
   cv::KeyPoint::convert(m_frame_keypoints, frame_points, frameIdxs);
-  m_H = cv::findHomography( cv::Mat(template_points), cv::Mat(frame_points), CV_RANSAC, m_maxRansacReprojError );
+//  m_H = cv::findHomography( cv::Mat(template_points), cv::Mat(frame_points), cv::RANSAC, m_maxRansacReprojError );
+  m_H = cv::findHomography( cv::Mat(template_points), cv::Mat(frame_points), cv::RHO, m_maxRansacReprojError );
 
   // ----------------------------------------------------------------
   // Compute number of inliers
@@ -189,14 +195,25 @@ PlanarObjectDetector::locateObject
   maxInlierDist = m_maxRansacReprojError < 0 ? 3 : m_maxRansacReprojError;
   m_num_inliers = 0;
   m_inliers_indices.clear();
-  for( int i1 = 0; i1 < template_points.size(); i1++ )
+  for( int i1 = 0; i1 < templateIdxs.size(); i1++ )
   {
-    if (cv::norm(frame_points[i1] - transformed_template_points.at<cv::Point2f>(i1,0)) <= maxInlierDist ) // inlier
+    int idx_template = templateIdxs[i1];
+    int idx_frame = frameIdxs[i1];
+    if (cv::norm(frame_points[idx_frame] - transformed_template_points.at<cv::Point2f>(idx_template,0)) <= maxInlierDist ) // inlier
     {
       m_num_inliers++;
-      m_inliers_indices.push_back(i1);
+      m_inliers_indices.push_back(i1); // i1 is the index of the inlier match in the m_filtered_matches vector
     }
   }
+
+//  for( int i1 = 0; i1 < template_points.size(); i1++ )
+//  {
+//    if (cv::norm(frame_points[i1] - transformed_template_points.at<cv::Point2f>(i1,0)) <= maxInlierDist ) // inlier
+//    {
+//      m_num_inliers++;
+//      m_inliers_indices.push_back(i1);
+//    }
+//  }
   
   // ----------------------------------------------------------------
   // Compute the corresponding corners to template image on the input frame.
@@ -213,12 +230,9 @@ PlanarObjectDetector::locateObject
   cv::Mat homogeneous_new_coords = (homogeneous_coords * m_H.t());
   
   // Divide by the third homogeneous coordinates to get the cartersian coordinates.
-  for (int j=0; j<3; j++)
-  {
-    cv::Mat col     = homogeneous_new_coords.col(j).mul(1.0 / homogeneous_new_coords.col(2));
-    cv::Mat col_new = homogeneous_new_coords.col(j);
-    col.copyTo(col_new);
-  }
+  homogeneous_new_coords.col(0) /= homogeneous_new_coords.col(2);
+  homogeneous_new_coords.col(1) /= homogeneous_new_coords.col(2);
+  homogeneous_new_coords.col(2) /= homogeneous_new_coords.col(2);
     
   cv::Mat homogeneous_new_coords_ref = homogeneous_new_coords(cv::Range::all(), cv::Range(0, 2)); 
   homogeneous_new_coords_ref.copyTo(template_corners_on_frame);
@@ -226,7 +240,6 @@ PlanarObjectDetector::locateObject
 
   // ----------------------------------------------------------------
   m_object_found = true;
-  
   return m_object_found;
 }
 
@@ -250,29 +263,41 @@ PlanarObjectDetector::showResults
   float green[3] = {0.0, 1.0, 0.0};
   float yellow[3]= {0.0, 1.0, 1.0};
   
-  for (int i=0; i<m_frame_keypoints.size(); i++)
+  //for (int i=0; i < m_frame_keypoints.size(); i++)
+  for (cv::KeyPoint& kp: m_frame_keypoints)
   {
-    viewer.filled_ellipse(2, 2, 0.0, m_frame_keypoints[i].pt.x, m_frame_keypoints[i].pt.y, red);
+    viewer.filled_ellipse(2, 2, 0.0, kp.pt.x, kp.pt.y, red);
   };
 
-  IplImage iplimage = m_template_image;
-  viewer.image(&iplimage, 0, 0, m_template_image.cols, m_template_image.rows);
+  viewer.image(m_template_image, 0, 0, m_template_image.cols, m_template_image.rows);
 
-  for (int i=0; i<m_template_keypoints.size(); i++)
+  //  for (int i=0; i < m_template_keypoints.size(); i++)
+  for (cv::KeyPoint& kp: m_template_keypoints)
   {
-    viewer.filled_ellipse(2, 2, 0.0, m_template_keypoints[i].pt.x, m_template_keypoints[i].pt.y, red);
+    viewer.filled_ellipse(2, 2, 0.0, kp.pt.x, kp.pt.y, red);
   };
   
-  for (int i=0; i<m_inliers_indices.size(); i++)
+  TRACE_INFO( " m_inliers_indices.size() = " << m_inliers_indices.size() << std::endl);
+  for (size_t i = 0; i < m_inliers_indices.size(); i++)
   {
-    int index1 = m_inliers_indices[i];
-    int index2 = m_filtered_matches[index1].queryIdx;
-    viewer.line(m_template_keypoints[index1].pt.x, m_template_keypoints[index1].pt.y, 
-		m_frame_keypoints[index2].pt.x, m_frame_keypoints[index2].pt.y, 
-		1, yellow);
+    int index1 = m_filtered_matches[i].trainIdx;
+    int index2 = m_filtered_matches[i].queryIdx;
+    viewer.line(m_template_keypoints[index1].pt.x, m_template_keypoints[index1].pt.y,
+                m_frame_keypoints[index2].pt.x, m_frame_keypoints[index2].pt.y,
+                1, yellow);
     viewer.filled_ellipse(3, 3, 0.0, m_template_keypoints[index1].pt.x, m_template_keypoints[index1].pt.y, green);
     viewer.filled_ellipse(3, 3, 0.0, m_frame_keypoints[index2].pt.x, m_frame_keypoints[index2].pt.y, green);
   };
+
+//  for (auto index1: m_inliers_indices)
+//  {
+//    int index2 = m_filtered_matches[index1].queryIdx;
+//    viewer.line(m_template_keypoints[index1].pt.x, m_template_keypoints[index1].pt.y,
+//                m_frame_keypoints[index2].pt.x, m_frame_keypoints[index2].pt.y,
+//                1, yellow);
+//    viewer.filled_ellipse(3, 3, 0.0, m_template_keypoints[index1].pt.x, m_template_keypoints[index1].pt.y, green);
+//    viewer.filled_ellipse(3, 3, 0.0, m_frame_keypoints[index2].pt.x, m_frame_keypoints[index2].pt.y, green);
+//  };
   
   if (!m_object_found)
   {
@@ -281,10 +306,10 @@ PlanarObjectDetector::showResults
   
   for (int i=0; i < m_template_corners_on_frame.rows; i++)
   {
-    int i2 = (i+1)%m_template_corners_on_frame.rows; 
-    viewer.line(m_template_corners_on_frame.at<MAT_TYPE>(i,0), m_template_corners_on_frame.at<MAT_TYPE>(i,1), 
-                m_template_corners_on_frame.at<MAT_TYPE>(i2,0), m_template_corners_on_frame.at<MAT_TYPE>(i2,1), 
-		2, green);      
+    int i2 = (i+1)%m_template_corners_on_frame.rows;
+    viewer.line(m_template_corners_on_frame.at<MAT_TYPE>(i,0), m_template_corners_on_frame.at<MAT_TYPE>(i,1),
+                m_template_corners_on_frame.at<MAT_TYPE>(i2,0), m_template_corners_on_frame.at<MAT_TYPE>(i2,1),
+                2, green);
   }
 }
 

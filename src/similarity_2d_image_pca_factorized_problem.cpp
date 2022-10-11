@@ -17,10 +17,10 @@
 // -----------------------------------------------------------------------------
 
 #include "similarity_2d_image_pca_factorized_problem.hpp"
-#include "utils.hpp"
-#include "trace.hpp"
+//#include "utils.hpp"
+//#include "trace.hpp"
 
-#include <strstream>
+#include <sstream>
 
 namespace upm { namespace pcr
 {
@@ -137,9 +137,9 @@ Similarity2DImagePCAFactorizedProblem::computeM0Matrix
   cv::Mat M0;
   cv::Mat gradients;
   std::vector<cv::Mat> gradients_vector;
-  MAT_TYPE x, y;
-  MAT_TYPE grad_x, grad_y;
-  MAT_TYPE norm_grad;
+//  MAT_TYPE x, y;
+//  MAT_TYPE grad_x, grad_y;
+//  MAT_TYPE norm_grad;
   int num_basis;  
   cv::Mat NB;
   

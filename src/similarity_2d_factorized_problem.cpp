@@ -83,43 +83,8 @@ Similarity2DFactorizedProblem::computeCostFunction
   cv::Mat J            = this->computeJacobian(params);
   cv::Mat error_vector = J*delta_params + residual_vector;
 
-  // Make error_vector unit norm.
-//  error_vector        /= cv::norm(error_vector);
-
   cv::Mat cost_        = error_vector.t() * error_vector;
   cost                 = cost_.at<MAT_TYPE>(0,0);
-
-//  cv::Mat warped_image, warped_image_gray;
-//  cv::Mat template_coords;
-//  std::vector<int> ctrl_coords_indices;
-//  double cost          = 0.0;
-
-//  m_object_model->getReferenceCoords(template_coords);
-//  warped_image      = m_motion_model->warpImage(image, params + delta_params, template_coords,
-//                                                ctrl_coords_indices);
-//  warped_image_gray = cv::Mat::zeros(warped_image.rows, warped_image_gray.cols,
-//                                     cv::DataType<uchar>::type);
-
-//  if (warped_image.channels() == 3)
-//  {
-//    cv::cvtColor(warped_image, warped_image_gray, CV_RGB2GRAY);
-//  }
-//  else
-//  {
-//    warped_image_gray = warped_image.clone();
-//  }
-
-//  cv::Mat features_vector = m_object_model->extractFeaturesFromWarpedImage(warped_image_gray);
-//  cv::Mat template_features_vector = m_object_model->computeTemplateFeatures(params + delta_params);
-
-//  cv::Mat error_vector = features_vector - template_features_vector;
-//  cv::Mat cost_        = error_vector.t() * error_vector;
-//  cost                 = cost_.at<MAT_TYPE>(0,0);
-
-//  cost /= static_cast<double>(residual_vector.rows);
-
-//  SHOW_VALUE(residual_vector.rows);
-//  SHOW_VALUE(residual_vector.cols);
 
   return cost;
 };
@@ -155,7 +120,7 @@ Similarity2DFactorizedProblem::computeResidual
 
   if (warped_image.channels() == 3)
   {
-    cvtColor(warped_image, warped_image_gray, CV_RGB2GRAY);
+    cvtColor(warped_image, warped_image_gray, cv::COLOR_RGB2GRAY);
   }
   else
   {

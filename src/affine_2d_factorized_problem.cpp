@@ -17,7 +17,7 @@
 // -----------------------------------------------------------------------------
 
 #include "affine_2d_factorized_problem.hpp"
-#include "trace.hpp"
+//#include "trace.hpp"
 
 namespace upm { namespace pcr
 {
@@ -120,7 +120,7 @@ Affine2DFactorizedProblem::computeResidual
   
   if (warped_image.channels() == 3)
   {
-    cvtColor(warped_image, warped_image_gray, CV_RGB2GRAY);
+    cvtColor(warped_image, warped_image_gray, cv::COLOR_RGB2GRAY);
   }
   else
   {
@@ -235,8 +235,8 @@ Affine2DFactorizedProblem::computeSigmaMatrix
   assert(params.rows == 6);
   assert(params.cols == 1);
   
-  MAT_TYPE tx  = params.at<MAT_TYPE>(0, 0);
-  MAT_TYPE ty  = params.at<MAT_TYPE>(1, 0);
+//  MAT_TYPE tx  = params.at<MAT_TYPE>(0, 0);
+//  MAT_TYPE ty  = params.at<MAT_TYPE>(1, 0);
   MAT_TYPE a   = params.at<MAT_TYPE>(2, 0);
   MAT_TYPE b   = params.at<MAT_TYPE>(3, 0);
   MAT_TYPE c   = params.at<MAT_TYPE>(4, 0);
@@ -277,7 +277,7 @@ Affine2DFactorizedProblem::computeM0Matrix
   cv::Mat zero_params;
   MAT_TYPE x, y;
   MAT_TYPE grad_x, grad_y;
-  MAT_TYPE norm_grad;
+//  MAT_TYPE norm_grad;
   std::vector<LineIndices> ctrl_coords_lines;
   
   m_object_model->getReferenceCoords(template_coords);
