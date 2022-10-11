@@ -45,6 +45,9 @@ typedef std::vector<SingleImageModel> SingleImageModels;
 /**
  * @class SingleImageModel
  * @brief A class that defines single template image (target) model.
+ *
+ * The gray levels are divided by 255 in order the cost function to use
+ * quantities in [0.0, 1.0] avoiding numerical errors (if any).
  */
 // -----------------------------------------------------------------------------
 class SingleImageModel: public ObjectModel

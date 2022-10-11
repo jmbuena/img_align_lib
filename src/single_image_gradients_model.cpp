@@ -40,6 +40,8 @@ SingleImageGradientsModel::SingleImageGradientsModel
   : SingleImageModel(template_image, equalize)
 {
   m_hessians   = computeGrayImageHessians(m_template_image);
+
+  m_hessians /= 255.0;
   
 //   for (int i=0; i < m_hessians.rows; i++)
 //   {
@@ -137,7 +139,9 @@ SingleImageGradientsModel::extractFeaturesFromWarpedImage
 //     gradients.at<MAT_TYPE>(0,0) /= norm;
 //     gradients.at<MAT_TYPE>(0,1) /= norm;
 //   }
-  
+
+  gradients /= 255.0;
+
   return gradients;
 };
   

@@ -22,8 +22,8 @@ const bool TEMPLATE_EQUALIZATION    = true;
 const int NUM_MAX_ITERATIONS        = 40;
 const bool SHOW_OPTIMIZER_ITERATION_COSTS = true;
 const int  NUM_PYRAMID_LEVELS       = 1;
-const float MAX_COST_FUNCTION_VALUE = 8.E+8;
-//const float MAX_COST_FUNCTION_VALUE = 1800;
+//const float MAX_COST_FUNCTION_VALUE = 8.E+8;
+const float MAX_COST_FUNCTION_VALUE = 1800;
 // const int SURF_HESSIAN_THRESHOLD    = 200;
 
 #undef USE_HOMOGRAPHY_FACTORIZED_PROBLEM

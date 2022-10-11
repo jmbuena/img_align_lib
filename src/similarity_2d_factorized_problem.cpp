@@ -43,7 +43,6 @@ Similarity2DFactorizedProblem::Similarity2DFactorizedProblem
     initialize();
   }
 
-//   m_invM0 = m_M0t_M0.inv() * m_M0.t();
   m_invM0 = m_M0.inv(cv::DECOMP_SVD);
 };
 

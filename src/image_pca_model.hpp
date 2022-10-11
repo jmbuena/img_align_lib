@@ -45,6 +45,12 @@ typedef std::vector<ImagePCAModel> ImagePCAModels;
 /**
  * @class ImagePCAModel
  * @brief A class that defines an appearance model based on a PCA model of images.
+ *
+ * The gray levels in the mean image and pca basis are divided by 255 in order
+ * the cost function to use quantities in [0.0, 1.0] avoiding numerical errors
+ * (if any). Note that the gray levels of the warped image are also divided by
+ * 255.
+ *
  */
 // -----------------------------------------------------------------------------
 class ImagePCAModel: public ObjectModel

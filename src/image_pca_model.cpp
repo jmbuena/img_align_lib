@@ -51,9 +51,11 @@ ImagePCAModel::ImagePCAModel
   assert(mean.rows == num_pixels);
   assert(B.rows == mean.rows);
 
-  m_B               = B;
-  m_invB            = B.inv(cv::DECOMP_SVD);
+  m_B               = B.clone();
+  m_B              /= 255.0;
+  m_invB            = m_B.inv(cv::DECOMP_SVD);
   m_mean            = mean.clone();
+  m_mean           /= 255.0;
 
   m_mean_image      = cv::Mat::zeros(img_rows, img_cols, cv::DataType<MAT_TYPE>::type);
   mean_image_vector = m_mean_image.reshape(1, img_rows*img_cols);
@@ -66,7 +68,7 @@ ImagePCAModel::ImagePCAModel
   // Compute the gradients for each basis vector/image and also for the mean image
   gradients = computeGrayImageGradients(m_mean_image);
   m_gradients_vector.push_back(gradients);
-  
+
 #ifdef DEBUG
   // write Mat objects to the file
   cv::FileStorage fs("ImagePCAModel_constructor.xml", cv::FileStorage::WRITE);
@@ -74,10 +76,10 @@ ImagePCAModel::ImagePCAModel
 #endif   
 
   cv::Mat B_ith_image = cv::Mat::zeros(img_rows, img_cols, cv::DataType<MAT_TYPE>::type);
-  for (int i=0; i < B.cols; i++)
+  for (int i=0; i < m_B.cols; i++)
   {
     cv::Mat B_ith_image_vector = B_ith_image.reshape(1, img_rows*img_cols);
-    cv::Mat B_ith              = B.col(i);
+    cv::Mat B_ith              = m_B.col(i);
     B_ith.copyTo(B_ith_image_vector);
     
     gradients                  = computeGrayImageGradients(B_ith_image);
@@ -97,7 +99,7 @@ ImagePCAModel::ImagePCAModel
   fs.release();
 #endif   
 
-  m_template_coordinates = computeTemplateCoordinates(m_mean_image);    
+  m_template_coordinates = computeTemplateCoordinates(m_mean_image);
   m_control_points_indices.push_back(0);
   m_control_points_indices.push_back(m_img_cols-1);
   m_control_points_indices.push_back(m_img_cols * m_img_rows -1);
@@ -168,7 +170,9 @@ ImagePCAModel::extractFeaturesFromWarpedImage
 
   cv::Mat warped_image_vector;
   warped_image.reshape(1, num_pixels).convertTo(warped_image_vector, cv::DataType<MAT_TYPE>::type);   
- 
+
+  warped_image_vector /= 255;
+
   return warped_image_vector;
 };
   
@@ -201,7 +205,8 @@ ImagePCAModel::computeTemplateFeatures
   cv::normalize(gray_levels_image, normalized, 0, 255, cv::NORM_MINMAX, cv::DataType<uint8_t>::type);
   cv::imwrite("reconstructed_image.png", normalized);
 #endif
-  
+
+
   return gray_levels;
 };
   

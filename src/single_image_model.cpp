@@ -64,9 +64,9 @@ SingleImageModel::SingleImageModel
   
 //   cv::imwrite("template_image_equalized.bmp", m_template_image);  
   m_gradients            = computeGrayImageGradients(m_template_image);
-//  m_gradients /= 255.0;
+  m_gradients /= 255.0;
   m_template_image.reshape(1, num_pixels).convertTo(m_template_gray_levels, cv::DataType<MAT_TYPE>::type);
-//  m_template_gray_levels /= 255.0;
+  m_template_gray_levels /= 255.0;
   m_template_coordinates = computeTemplateCoordinates(m_template_image);
   
   m_control_points_indices.push_back(0);
@@ -147,7 +147,7 @@ SingleImageModel::extractFeaturesFromWarpedImage
     warped_image.reshape(1, num_pixels).convertTo(warped_image_vector, cv::DataType<MAT_TYPE>::type);   
   }
 
-//  warped_image_vector /= 255;
+  warped_image_vector /= 255;
 
   return warped_image_vector;
 }

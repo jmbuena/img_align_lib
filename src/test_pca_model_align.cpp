@@ -18,8 +18,8 @@ const double TICKS_PER_MILLISECOND  = (static_cast<double>(cv::getTickFrequency(
 const int FRAME_HEIGHT              = 480;
 const int FRAME_WIDTH               = 640;
 const int NUM_MAX_ITERATIONS        = 20;
-const bool SHOW_OPTIMIZER_ITERATION_COSTS = false;
-const int  NUM_PYRAMID_LEVELS       = 1;
+const bool SHOW_OPTIMIZER_ITERATION_COSTS = true;
+const int  NUM_PYRAMID_LEVELS       = 3;
 const std::string CASCADE_NAME      = "/usr/share/opencv4/haarcascades/haarcascade_frontalface_alt2.xml";
 
 #define USE_SIMILARITY_PCA_FACTORIZED_PROBLEM
@@ -28,8 +28,8 @@ const std::string CASCADE_NAME      = "/usr/share/opencv4/haarcascades/haarcasca
 // #include "pca_illum_9_identity_60_64x64.hpp"
 //#include "pca_illum_9_64x64.hpp"
 
-#include "pca_illum_9_identity_40_32x32.hpp"
-//#include "pca_illum_9_32x32.hpp"
+//#include "pca_illum_9_identity_40_32x32.hpp"
+#include "pca_illum_9_32x32.hpp"
 
 #ifdef USE_SIMILARITY_PCA_FACTORIZED_PROBLEM 
   #include "image_pca_model.hpp"
@@ -321,13 +321,13 @@ main
     static MotionModelPtr motion_model_ptr(dynamic_cast<MotionModel*>(new Similarity2D()));
     static OptimizationProblemPtr optim_problem_ptr(dynamic_cast<OptimizationProblem*>(new
       Similarity2DImagePCAFactorizedProblem(object_model_ptr, motion_model_ptr)));
-    max_cost_function_value = 400000.;
+    max_cost_function_value = 5.0;
 #elif defined(USE_AFFINE_PCA_FACTORIZED_PROBLEM)     
     static ImagePCAModelPtr object_model_ptr(new ImagePCAModel(mean_mat, PCA_IMG_WIDTH, PCA_IMG_HEIGHT, B_mat));
     static MotionModelPtr motion_model_ptr(dynamic_cast<MotionModel*>(new Affine2D()));
     static OptimizationProblemPtr optim_problem_ptr(dynamic_cast<OptimizationProblem*>(new
       Affine2DImagePCAFactorizedProblem(object_model_ptr, motion_model_ptr)));
-    max_cost_function_value = 400000.;
+    max_cost_function_value = 5.0;
 #else
    #error "Wrong OptimizationProblem selected"
 #endif

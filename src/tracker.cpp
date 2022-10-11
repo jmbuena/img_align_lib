@@ -275,7 +275,7 @@ Tracker::isLost
   for (size_t i=0; i < m_ctrl_points_indices.size(); i++)
   {
 //    std::cout << "image_coords=" << image_coords << std::endl;
-    std::cout << "m_ctrl_points_indices.size()=" << m_ctrl_points_indices.size() << std::endl;
+//    std::cout << "m_ctrl_points_indices.size()=" << m_ctrl_points_indices.size() << std::endl;
     index1 = m_ctrl_points_indices[i];
     if (i == (m_ctrl_points_indices.size()-1))
     {
@@ -312,8 +312,8 @@ Tracker::isLost
   iteration_costs = m_optimizer->getIterationsCosts();
   last_cost = iteration_costs[iteration_costs.size()-1];
 
-  TRACE_INFO("last_cost=" << last_cost << std::endl);
-  TRACE_INFO("m_max_cost=" << m_max_cost << std::endl);
+//  TRACE_INFO("last_cost=" << last_cost << std::endl);
+//  TRACE_INFO("m_max_cost=" << m_max_cost << std::endl);
 
 //  return (area < MIN_OBJECT_AREA) ||
 //         (last_cost > m_max_cost) ||
