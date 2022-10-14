@@ -125,7 +125,7 @@ GaussNewtonOptimizer::solve
 
     if (m_show_iterations)
     {
-      std::cout << "  " << k << "        " << cost << "        " << cv::norm(gradient) << std::endl;
+      std::cout << "  " << k << "        " << cost << "        " << gradient_norm << std::endl;
     }
     
     // 1st stopping criterion: the norm of the gradient is under a given
