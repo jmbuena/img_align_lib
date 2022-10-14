@@ -267,8 +267,6 @@ Similarity2DFactorizedProblem::computeM0Matrix
   cv::Mat M0;
   cv::Mat gradients;
   cv::Mat zero_params;
-  MAT_TYPE x, y;
-  MAT_TYPE grad_x, grad_y;
   MAT_TYPE norm_grad;
   std::vector<LineIndices> ctrl_coords_lines;
   
@@ -280,18 +278,28 @@ Similarity2DFactorizedProblem::computeM0Matrix
   assert(gradients.rows == M0.rows);
   assert(gradients.cols == 2);
 
-  for (int i=0; i < M0.rows; i++)
-  {     
-    x      = template_coords.at<MAT_TYPE>(i,0);
-    y      = template_coords.at<MAT_TYPE>(i,1);
-    grad_x = gradients.at<MAT_TYPE>(i,0);
-    grad_y = gradients.at<MAT_TYPE>(i,1);
+  gradients.col(0).copyTo(M0.col(0)); // grad_x
+  gradients.col(1).copyTo(M0.col(1)); // grad_y
+  M0.col(2) = gradients.col(0).mul(-template_coords.col(1)) +
+              gradients.col(1).mul(template_coords.col(0)); // (grad_x .* (-y)) + (grad_y .* x)
+  M0.col(3) = gradients.col(0).mul(template_coords.col(0)) +
+              gradients.col(1).mul(template_coords.col(1)); // (grad_x .* x) + (grad_y .* y)
+
+
+//  MAT_TYPE x, y;
+//  MAT_TYPE grad_x, grad_y;
+//  for (int i=0; i < M0.rows; i++)
+//  {
+//    x      = template_coords.at<MAT_TYPE>(i,0);
+//    y      = template_coords.at<MAT_TYPE>(i,1);
+//    grad_x = gradients.at<MAT_TYPE>(i,0);
+//    grad_y = gradients.at<MAT_TYPE>(i,1);
   
-    M0.at<MAT_TYPE>(i,0) = grad_x;
-    M0.at<MAT_TYPE>(i,1) = grad_y;
-    M0.at<MAT_TYPE>(i,2) = (grad_x * (-y)) + (grad_y * x); 
-    M0.at<MAT_TYPE>(i,3) = (grad_x * x)    + (grad_y * y); 
-  }
+//    M0.at<MAT_TYPE>(i,0) = grad_x;
+//    M0.at<MAT_TYPE>(i,1) = grad_y;
+//    M0.at<MAT_TYPE>(i,2) = (grad_x * (-y)) + (grad_y * x);
+//    M0.at<MAT_TYPE>(i,3) = (grad_x * x)    + (grad_y * y);
+//  }
 
 #ifdef DEBUG
   cv::namedWindow("M0");

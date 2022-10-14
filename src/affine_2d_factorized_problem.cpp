@@ -85,7 +85,7 @@ Affine2DFactorizedProblem::computeCostFunction
   
   cv::Mat cost_        = error_vector.t() * error_vector;
   cost                 = cost_.at<MAT_TYPE>(0,0);
-  
+
   return cost;
 };
     
@@ -124,7 +124,8 @@ Affine2DFactorizedProblem::computeResidual
   }
   else
   {
-    warped_image_gray = warped_image.clone();
+//    warped_image_gray = warped_image.clone();
+    warped_image.convertTo(warped_image_gray, cv::DataType<uchar>::type);
   }
 
   cv::Mat features_vector          = m_object_model->extractFeaturesFromWarpedImage(warped_image_gray);
@@ -139,13 +140,16 @@ Affine2DFactorizedProblem::computeResidual
 
   cv::namedWindow("template");
   cv::Mat template_uchar;
-  template_features_vector.reshape(1, warped_image.rows).convertTo(template_uchar, cv::DataType<uchar>::type);
+//  template_features_vector.reshape(1, warped_image.rows).convertTo(template_uchar, cv::DataType<uchar>::type);
+//  cv::imshow("template", template_uchar);
+  template_features_vector.reshape(1, warped_image.rows).copyTo(template_uchar);
   cv::imshow("template", template_uchar);
-  
+
   cv::namedWindow("residual");
   cv::Mat residual_uchar;
-  residual.convertTo(residual_uchar, cv::DataType<uchar>::type);
-  cv::imshow("residual", residual_uchar.reshape(1, warped_image.rows));
+//  residual.convertTo(residual_uchar, cv::DataType<uchar>::type);
+//  cv::imshow("residual", residual_uchar.reshape(1, warped_image.rows));
+  cv::imshow("residual", residual.reshape(1, warped_image.rows));
 
   // write Mat objects to the file
   cv::FileStorage fs("Affine2DFactorizedProblem_computeResidual.xml", cv::FileStorage::WRITE);
@@ -178,22 +182,22 @@ Affine2DFactorizedProblem::computeInverseJacobian
   assert(params.rows == 6);
   assert(params.cols == 1);
   
-  cv::Mat Sigma    = computeSigmaMatrix(params);  
+  cv::Mat Sigma    = computeSigmaMatrix(params);
   cv::Mat invSigma = Sigma.inv();
-  cv::Mat  invJ; // = cv::Mat::zeros(invSigma.rows, m_invM0.cols, cv::DataType<MAT_TYPE>::type);
+  cv::Mat invJ;
   invJ             = invSigma * m_invM0;
 
 #ifdef DEBUG_
   // write Mat objects to the file
   cv::FileStorage fs("Affine2DFactorizedProblem_computeInverseJacobian.xml", cv::FileStorage::WRITE);
-  fs << "params" << params; 
+  fs << "params" << params;
   fs << "Sigma" << Sigma;
   fs << "invSigma" << invSigma;
   fs << "invJ" << invJ;
   fs << "M0" << m_M0;
   fs << "m_invM0" << m_invM0;
   fs.release();
-#endif  
+#endif
 
   return invJ;
 };
@@ -275,8 +279,6 @@ Affine2DFactorizedProblem::computeM0Matrix
   cv::Mat M0;
   cv::Mat gradients;
   cv::Mat zero_params;
-  MAT_TYPE x, y;
-  MAT_TYPE grad_x, grad_y;
 //  MAT_TYPE norm_grad;
   std::vector<LineIndices> ctrl_coords_lines;
   
@@ -288,20 +290,29 @@ Affine2DFactorizedProblem::computeM0Matrix
   assert(gradients.rows == M0.rows);
   assert(gradients.cols == 2);
 
-  for (int i=0; i < M0.rows; i++)
-  {     
-    x      = template_coords.at<MAT_TYPE>(i,0);
-    y      = template_coords.at<MAT_TYPE>(i,1);
-    grad_x = gradients.at<MAT_TYPE>(i,0);
-    grad_y = gradients.at<MAT_TYPE>(i,1);
+  gradients.col(0).copyTo(M0.col(0)); // grad_x
+  gradients.col(1).copyTo(M0.col(1)); // grad_y
+  M0.col(2) = gradients.col(0).mul(template_coords.col(0)); // grad_x .* x
+  M0.col(3) = gradients.col(1).mul(template_coords.col(0)); // grad_y .* x
+  M0.col(4) = gradients.col(0).mul(template_coords.col(1)); // grad_x .* y
+  M0.col(5) = gradients.col(1).mul(template_coords.col(1)); // grad_y .* y
+
+//  MAT_TYPE x, y;
+//  MAT_TYPE grad_x, grad_y;
+//  for (int i=0; i < M0.rows; i++)
+//  {
+//    x      = template_coords.at<MAT_TYPE>(i,0);
+//    y      = template_coords.at<MAT_TYPE>(i,1);
+//    grad_x = gradients.at<MAT_TYPE>(i,0);
+//    grad_y = gradients.at<MAT_TYPE>(i,1);
   
-    M0.at<MAT_TYPE>(i,0) = grad_x;
-    M0.at<MAT_TYPE>(i,1) = grad_y;
-    M0.at<MAT_TYPE>(i,2) = (grad_x * x); 
-    M0.at<MAT_TYPE>(i,3) = (grad_y * x); 
-    M0.at<MAT_TYPE>(i,4) = (grad_x * y); 
-    M0.at<MAT_TYPE>(i,5) = (grad_y * y); 
-  }
+//    M0.at<MAT_TYPE>(i,0) = grad_x;
+//    M0.at<MAT_TYPE>(i,1) = grad_y;
+//    M0.at<MAT_TYPE>(i,2) = (grad_x * x);
+//    M0.at<MAT_TYPE>(i,3) = (grad_y * x);
+//    M0.at<MAT_TYPE>(i,4) = (grad_x * y);
+//    M0.at<MAT_TYPE>(i,5) = (grad_y * y);
+//  }
 
 #ifdef DEBUG
   cv::namedWindow("M0");
