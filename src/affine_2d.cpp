@@ -59,23 +59,6 @@ Affine2D::~Affine2D
 // Dependencies:
 // Restrictions and Caveats:
 //
-// -------------------------------------------------------------------------  
-// cv::Mat
-// Affine2D::computeMotionJacobian
-//   (
-//   cv::Mat params  
-//   )
-// {
-// };
-  
-// -----------------------------------------------------------------------------
-//
-// Purpose and Method: 
-// Inputs: 
-// Outputs: 
-// Dependencies:
-// Restrictions and Caveats:
-//
 // -----------------------------------------------------------------------------  
 cv::Mat
 Affine2D::scaleInputImageResolution
@@ -89,7 +72,7 @@ Affine2D::scaleInputImageResolution
   params.copyTo(new_params);
     
   new_params *= scale;
-  
+
   return new_params;
 }
 
@@ -120,7 +103,7 @@ Affine2D::transformCoordsToTemplate
  
   assert(coords.cols == 2); // We need two dimensional coordinates
   
-  cv::Mat A = (cv::Mat_<MAT_TYPE>(6,1) << a, b,  
+  cv::Mat A = (cv::Mat_<MAT_TYPE>(2,2) << a, b,
                                           c, d);
   A = A.inv();                                        
 
@@ -213,7 +196,7 @@ Affine2D::warpImage
 					  0.,  0., 1.);
   
   // Find minimum x and minimum y in template coords
-  cv::MatConstIterator_<MAT_TYPE> it;
+//  cv::MatConstIterator_<MAT_TYPE> it;
   max_x = std::numeric_limits<MAT_TYPE>::min();
   max_y = std::numeric_limits<MAT_TYPE>::min();
   min_x = std::numeric_limits<MAT_TYPE>::max();
@@ -230,10 +213,17 @@ Affine2D::warpImage
     if (y < min_y) min_y = y;
   }
 
-  cv::Mat TR  = (cv::Mat_<MAT_TYPE>(3,3) << 1.,    0,    min_x, 
-		                            0,    1.,    min_y, 
-		                            0,     0,    1.);
-  warped_image = cv::Mat::zeros(max_y-min_y+1, max_x-min_x+1, cv::DataType<uint8_t>::type);
+
+  // Coordinates of the template image in Single Image Model start at -width/2, -height/2 already.
+  // Thus, (min_x, min_y) is the right traslation vector to correct the homography centred
+  // at the template. It will correct the warping operations that assumes the template top left corner
+  // is at (0,0).
+  int width = (max_x - min_x + 1);
+  int height = (max_y - min_y + 1);
+  cv::Mat TR  = (cv::Mat_<MAT_TYPE>(3,3) << 1.,    0,    min_x,
+                                            0,    1.,    min_y,
+                                            0,     0,    1.);
+  warped_image = cv::Mat::zeros(height, width, cv::DataType<uint8_t>::type);
   
 //   if (scale < 0.000000001)
 //   {

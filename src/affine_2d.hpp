@@ -80,12 +80,6 @@ public:
   virtual ~Affine2D
     ();
 
-//   virtual cv::Mat
-//   computeMotionJacobian
-//     (
-//     cv::Mat params
-//     ); 
-      
   virtual cv::Mat
   scaleInputImageResolution
     (
