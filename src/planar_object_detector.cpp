@@ -46,25 +46,13 @@ PlanarObjectDetector::PlanarObjectDetector
     template_image.copyTo(m_template_image);
   }
   
-//  m_detector                 = cv::SURF::create(100, 4, 3);
-////  m_detector->set("hessianThreshold", 100.);
-////  m_detector->set("nOctaveLayers", 4);
-////  m_detector->set("nOctaves", 3);
-//  m_descriptorExtractor      = m_detector;
-//  m_descriptorMatcher        = cv::DescriptorMatcher::create("BruteForce-L2");
-////  m_descriptorMatcher        = cv::DescriptorMatcher::create("FlannBased");
-
 //  m_detector                 = cv::ORB::create();
 //  m_descriptorExtractor      = cv::ORB::create();
+//  m_descriptorMatcher        = cv::DescriptorMatcher::create("BruteForce-Hamming");
 
   m_detector                 = cv::SIFT::create();
   m_descriptorExtractor      = cv::SIFT::create();
   m_descriptorMatcher        = cv::DescriptorMatcher::create("FlannBased");
-
-  //  m_detector                 = cv::FastFeatureDetector::create(30, true);
-//  m_descriptorExtractor      = cv::ORB::create();
-//  m_descriptorMatcher        = cv::DescriptorMatcher::create("BruteForce-Hamming");
-////  m_descriptorMatcher        = cv::DescriptorMatcher::create("FlannBased");
 
   m_maxRansacReprojError     = 3;
   m_minNumInliersPercentage  = 0.3;
@@ -109,7 +97,6 @@ PlanarObjectDetector::locateObject
   std::vector<cv::Point2f> template_points; 
   cv::Mat transformed_template_points; 
   std::vector<cv::Point2f> frame_points;
-//  double maxInlierDist;
   
   m_object_found = false;
 
@@ -126,7 +113,7 @@ PlanarObjectDetector::locateObject
     m_descriptorMatcher->add(descriptors);
     m_descriptorMatcher->train(); // Build the lookup structures for descriptors
   }
-  
+
   // ----------------------------------------------------------------
   // Change frame to gray scale.
   // ----------------------------------------------------------------
@@ -176,7 +163,6 @@ PlanarObjectDetector::locateObject
 
   if (m_filtered_matches.size() < 10)
   {
-    TRACE_INFO(" m_filtered_matches.size() < 10" << std::endl);
     return false;
   }
   
@@ -185,8 +171,8 @@ PlanarObjectDetector::locateObject
   // ----------------------------------------------------------------
   cv::KeyPoint::convert(m_template_keypoints, template_points, templateIdxs);
   cv::KeyPoint::convert(m_frame_keypoints, frame_points, frameIdxs);
-//  m_H = cv::findHomography( cv::Mat(template_points), cv::Mat(frame_points), cv::RANSAC, m_maxRansacReprojError );
   cv::Mat mask;
+  //  m_H = cv::findHomography( cv::Mat(template_points), cv::Mat(frame_points), cv::RANSAC, m_maxRansacReprojError );
   m_H = cv::findHomography( cv::Mat(template_points), cv::Mat(frame_points), cv::RHO, m_maxRansacReprojError, mask);
 
   // ----------------------------------------------------------------
@@ -221,7 +207,7 @@ PlanarObjectDetector::locateObject
   homogeneous_new_coords.col(0) /= homogeneous_new_coords.col(2);
   homogeneous_new_coords.col(1) /= homogeneous_new_coords.col(2);
   homogeneous_new_coords.col(2) /= homogeneous_new_coords.col(2);
-    
+
   cv::Mat homogeneous_new_coords_ref = homogeneous_new_coords(cv::Range::all(), cv::Range(0, 2)); 
   homogeneous_new_coords_ref.copyTo(template_corners_on_frame);
   homogeneous_new_coords_ref.copyTo(m_template_corners_on_frame);
@@ -266,10 +252,11 @@ PlanarObjectDetector::showResults
   };
   
   TRACE_INFO( " m_inliers_indices.size() = " << m_inliers_indices.size() << std::endl);
-  for (size_t i = 0; i < m_inliers_indices.size(); i++)
+
+  for (auto& m: m_filtered_matches)
   {
-    int index1 = m_filtered_matches[i].trainIdx;
-    int index2 = m_filtered_matches[i].queryIdx;
+    int index1 = m.trainIdx;
+    int index2 = m.queryIdx;
     viewer.line(m_template_keypoints[index1].pt.x, m_template_keypoints[index1].pt.y,
                 m_frame_keypoints[index2].pt.x, m_frame_keypoints[index2].pt.y,
                 1, yellow);
@@ -277,16 +264,6 @@ PlanarObjectDetector::showResults
     viewer.filled_ellipse(3, 3, 0.0, m_frame_keypoints[index2].pt.x, m_frame_keypoints[index2].pt.y, green);
   };
 
-//  for (auto index1: m_inliers_indices)
-//  {
-//    int index2 = m_filtered_matches[index1].queryIdx;
-//    viewer.line(m_template_keypoints[index1].pt.x, m_template_keypoints[index1].pt.y,
-//                m_frame_keypoints[index2].pt.x, m_frame_keypoints[index2].pt.y,
-//                1, yellow);
-//    viewer.filled_ellipse(3, 3, 0.0, m_template_keypoints[index1].pt.x, m_template_keypoints[index1].pt.y, green);
-//    viewer.filled_ellipse(3, 3, 0.0, m_frame_keypoints[index2].pt.x, m_frame_keypoints[index2].pt.y, green);
-//  };
-  
   if (!m_object_found)
   {
     return;
