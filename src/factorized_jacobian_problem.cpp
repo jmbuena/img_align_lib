@@ -100,6 +100,8 @@ FactorizedJacobianProblem::computeJacobian
   return J;
 };
 
+
+
 // -----------------------------------------------------------------------------
 //
 // Purpose and Method: 
@@ -108,7 +110,7 @@ FactorizedJacobianProblem::computeJacobian
 // Dependencies:
 // Restrictions and Caveats:
 //
-// -----------------------------------------------------------------------------  
+// -----------------------------------------------------------------------------
 cv::Mat
 FactorizedJacobianProblem::computeInverseJacobian
   (
@@ -122,11 +124,13 @@ FactorizedJacobianProblem::computeInverseJacobian
   
   cv::Mat Sigma = computeSigmaMatrix(motion_params);
 
-  cv::Mat H     = Sigma.t() * m_M0t_M0 * Sigma;
-  cv::Mat invJ  = H.inv() * (Sigma.t() * m_M0.t());
+  cv::Mat Hess  = Sigma.t() * m_M0t_M0 * Sigma;
+  cv::Mat invJ  = Hess.inv() * (Sigma.t() * m_M0.t());
   
   return invJ;
 };
-           
+
+
+
   
 }; }; // namespace

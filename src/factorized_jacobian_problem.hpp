@@ -94,6 +94,7 @@ protected:
     ();
 
   cv::Mat m_M0;
+  cv::Mat m_invM0;
   cv::Mat m_M0t_M0;
   bool m_initialized;
 }; 
