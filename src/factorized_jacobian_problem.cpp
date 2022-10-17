@@ -100,8 +100,6 @@ FactorizedJacobianProblem::computeJacobian
   return J;
 };
 
-
-
 // -----------------------------------------------------------------------------
 //
 // Purpose and Method: 
@@ -130,7 +128,4 @@ FactorizedJacobianProblem::computeInverseJacobian
   return invJ;
 };
 
-
-
-  
 }; }; // namespace
