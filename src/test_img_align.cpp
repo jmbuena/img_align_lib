@@ -13,13 +13,13 @@ namespace po = boost::program_options;
 
 const int FRAME_HEIGHT              = 480;
 const int FRAME_WIDTH               = 640;
-const int TEMPLATE_IMG_WIDTH        = 75;
+const int TEMPLATE_IMG_WIDTH        = 100;
 const int TEMPLATE_IMG_WIDTH_DIV2   = static_cast<int>(TEMPLATE_IMG_WIDTH / 2.0);
-const int TEMPLATE_IMG_HEIGHT       = 75;
+const int TEMPLATE_IMG_HEIGHT       = 100;
 const int TEMPLATE_IMG_HEIGHT_DIV2  = static_cast<int>(TEMPLATE_IMG_HEIGHT / 2.0);
 const double TEMPLATE_SCALE         = 3;
 const bool TEMPLATE_EQUALIZATION    = true;
-const int NUM_MAX_ITERATIONS        = 40;
+const int NUM_MAX_ITERATIONS        = 30;
 const bool SHOW_OPTIMIZER_ITERATION_COSTS = true;
 const int  NUM_PYRAMID_LEVELS       = 1;
 const float MAX_COST_FUNCTION_VALUE = 300;
@@ -146,7 +146,7 @@ processFrame
                                                    A.at<double>(1,1)); // d
 //      TRACE_INFO("-> 2 =========="<< std::endl);
 
-#elif defined(USE_HOMOGRAPHY_MODEL) 
+#elif defined(USE_HOMOGRAPHY_MODEL)       
       Mat H = cv::getPerspectiveTransform(src_points, dst_points);
 
       motion_params =  (cv::Mat_<MAT_TYPE>(8,1) << H.at<double>(0,0),
@@ -156,21 +156,12 @@ processFrame
                                                    H.at<double>(1,1),
                                                    H.at<double>(2,1),
                                                    H.at<double>(0,2),
-                                                   H.at<double>(1,2)); //,
-//                                                   H.at<double>(2,2));
-
-
-//      TRACE_INFO("-> 2 =========="<< std::endl);
-//      SHOW_VALUE(H)
+                                                   H.at<double>(1,2));
 #else
   #error "Wrong motion model configuration"
 #endif
-//      TRACE_INFO("motion_params_detect_ = " << motion_params << std::endl);
-//      SHOW_VALUE(motion_params.size)
       tracker.setInitialParams(motion_params);
-//      TRACE_INFO("-> 3 =========="<< std::endl);
       tracker.processFrame(frame);
-//      TRACE_INFO("motion_params_track_ = " << tracker.getParams() << std::endl);
     }
   }
   else
@@ -217,15 +208,11 @@ showResults
   viewer.image(frame, 0, 0, frame.cols, frame.rows);
   if (!tracker.isLost())
   {
-//    TRACE_INFO("-> tracker.showResults)"<< std::endl);
     tracker.showResults(viewer, frame);
-//    TRACE_INFO("<- tracker.showResults)"<< std::endl);
   }
   else
   {
-//    TRACE_INFO("-> detector.showResults()"<< std::endl);
     detector.showResults(viewer, frame);
-//    TRACE_INFO("<- detector.showResults()"<< std::endl);
   }
   viewer.text(time_info, 20, frame.rows-20, red_color, 0.5);
   viewer.endDrawing();  
@@ -416,13 +403,10 @@ main
 		                                 (static_cast<MAT_TYPE>(frame.rows)/2.0), 
 		                                 TEMPLATE_SCALE, 0.,
 						 0.,             TEMPLATE_SCALE);
-#elif defined(USE_HOMOGRAPHY_MODEL)    
+#elif defined(USE_HOMOGRAPHY_MODEL)
     initial_params = (cv::Mat_<MAT_TYPE>(8,1) <<  TEMPLATE_SCALE ,             0., 0.,
                                                   0.             , TEMPLATE_SCALE, 0.,
                    (static_cast<MAT_TYPE>(frame.cols)/2.0),  (static_cast<MAT_TYPE>(frame.rows)/2.0));
-//    initial_params = (cv::Mat_<MAT_TYPE>(9,1) <<  TEMPLATE_SCALE ,             0., 0.,
-//                                                  0.             , TEMPLATE_SCALE, 0.,
-//                   (static_cast<MAT_TYPE>(frame.cols)/2.0),  (static_cast<MAT_TYPE>(frame.rows)/2.0), 1.0);
 #else
   #error "Wrong motion model configuration"
 #endif

@@ -182,22 +182,27 @@ Homography2DFactorizedProblem::computeInverseJacobian
   assert(params.rows == m_motion_model->getNumParams());
   assert(params.cols == 1);
 
+  cv::Mat params2 = cv::Mat::ones(9,1, cv::DataType<MAT_TYPE>::type);
+  params.copyTo(params2(cv::Range(0,8), cv::Range::all()));
+  cv::Mat H            = params2.reshape(1, 3).t();
+  cv::Mat invH         = H.inv();
+
+//  double tic = (double)cv::getTickCount();
+#define VERSION1
+#ifdef VERSION1
   cv::Mat Sigma = computeSigmaMatrix(params);
   cv::Mat Hess  = Sigma.t() * m_M0t_M0 * Sigma;
   cv::Mat invJ  = Hess.inv() * (Sigma.t() * m_M0.t());
-
-//  // With 9 parameters in the homography we can safely do
-//  // Gauss-Newton Jacobian inverse
-//  cv::Mat Sigma    = computeSigmaMatrix(params);
-////  cv::Mat invSigma = Sigma.inv();
-////  cv::Mat invJ     = invSigma * m_invM0;
-
-//  cv::Mat H            = params.reshape(1, 3).t();
-//  cv::Mat invSigma     = cv::Mat::zeros(9, 9, cv::DataType<MAT_TYPE>::type);
-//  H.copyTo(invSigma(cv::Range(0,3), cv::Range(0,3)));
-//  H.copyTo(invSigma(cv::Range(3,6), cv::Range(3,6)));
-//  H.copyTo(invSigma(cv::Range(6,9), cv::Range(6,9)));
-//  cv::Mat invJ     = invSigma * m_invM0;
+#endif
+#ifdef VERSION2
+  cv::Mat J = cv::Mat::zeros(m_M0.rows, m_motion_model->getNumParams(), cv::DataType<MAT_TYPE>::type);
+  J(cv::Range::all(), cv::Range(0,3)) = m_M0(cv::Range::all(), cv::Range(0,3)) * invH;
+  J(cv::Range::all(), cv::Range(3,6)) = m_M0(cv::Range::all(), cv::Range(3,6)) * invH;
+  J(cv::Range::all(), cv::Range(6,8)) = m_M0(cv::Range::all(), cv::Range(6,9)) * invH(cv::Range::all(), cv::Range(0,2));
+  cv::Mat invJ  = J.inv(cv::DECOMP_SVD);
+#endif
+//  double toc = ((double)cv::getTickCount() - tic)/cv::getTickFrequency();
+//  TRACE_INFO("computeInverseJacobian time = " << toc << std::endl);
 
 #ifdef DEBUG
   // write Mat objects to the file
@@ -305,7 +310,6 @@ Homography2DFactorizedProblem::computeM0Matrix
   M0.col(5) = grad_xy.mul(template_coords.col(1)); // grad_xy * y
   gradients.col(0).copyTo(M0.col(6)); // grad_x
   gradients.col(1).copyTo(M0.col(7)); // grad_y
-//  grad_xy.copyTo(M0.col(8)); // grad_xy
 
 #ifdef DEBUG  
   cv::namedWindow("M0");
