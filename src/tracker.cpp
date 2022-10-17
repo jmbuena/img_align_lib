@@ -85,11 +85,13 @@ Tracker::setInitialParams
   cv::Mat initial_params
   )
 {
-  if ((initial_params.rows != m_motion_model->getNumParams()) ||
-      (initial_params.cols != 1))
-  {
-    throw std::domain_error("Tracker::setInitialParams");
-  }
+// FIXME! -- if we uncomment this then the PCA based motion models will not work (their
+//        -- parameters include motion + appearance parameters.
+//  if ((initial_params.rows != m_motion_model->getNumParams()) ||
+//      (initial_params.cols != 1))
+//  {
+//    throw std::domain_error("Tracker::setInitialParams");
+//  }
   
   cv::Mat initial_params_MAT_TYPE = cv::Mat_<MAT_TYPE>(m_motion_model->getNumParams(), 1);
   initial_params.convertTo(initial_params_MAT_TYPE, cv::DataType<MAT_TYPE>::type);
