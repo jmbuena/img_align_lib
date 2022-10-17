@@ -85,14 +85,13 @@ Tracker::setInitialParams
   cv::Mat initial_params
   )
 {
-//  if ((initial_params.rows != m_motion_model->getNumParams()) ||
-//      (initial_params.cols != 1))
-//  {
-//    throw std::domain_error("Tracker::setInitialParams");
-//  }
+  if ((initial_params.rows != m_motion_model->getNumParams()) ||
+      (initial_params.cols != 1))
+  {
+    throw std::domain_error("Tracker::setInitialParams");
+  }
   
-  cv::Mat initial_params_MAT_TYPE;
-  
+  cv::Mat initial_params_MAT_TYPE = cv::Mat_<MAT_TYPE>(m_motion_model->getNumParams(), 1);
   initial_params.convertTo(initial_params_MAT_TYPE, cv::DataType<MAT_TYPE>::type);
   
   m_params = initial_params;
@@ -147,13 +146,13 @@ Tracker::processFrame
       break; 
     }
   }
-  
+
   double scale_factor = pow(2.0, pyramid.size()-1);
-  
+
   m_motion_params   = m_params(cv::Range(0, m_motion_model->getNumParams()), cv::Range::all());
   motion_params_aux = m_motion_model->scaleInputImageResolution(m_motion_params, 1.0/scale_factor);
   motion_params_aux.copyTo(m_motion_params);
-  
+
   if (m_optimizer->getShowIterations())
   {
     std::cout << "============= Tracker starts processing frame #" << frame_num << " ..." << std::endl;
@@ -274,8 +273,6 @@ Tracker::isLost
   area = 0.0;
   for (size_t i=0; i < m_ctrl_points_indices.size(); i++)
   {
-//    std::cout << "image_coords=" << image_coords << std::endl;
-//    std::cout << "m_ctrl_points_indices.size()=" << m_ctrl_points_indices.size() << std::endl;
     index1 = m_ctrl_points_indices[i];
     if (i == (m_ctrl_points_indices.size()-1))
     {
@@ -291,13 +288,7 @@ Tracker::isLost
     x2 = static_cast<int>(image_coords.at<MAT_TYPE>(index2,0));
     y2 = static_cast<int>(image_coords.at<MAT_TYPE>(index2,1));
 
-//    std::cout << "index1, x1, y1 =" << index1 << "," << x1 << ", " << y1 << std::endl;
-//    std::cout << "index2, x2, y2 =" << index2 << "," << x2 << ", " << y2 << std::endl;
-
     area += (x1 + x2) * (y2 - y1);
-
-//    TRACE_INFO(" area =" << area << std::endl);
-//    TRACE_INFO(" MIN_OBJECT_AREA =" << MIN_OBJECT_AREA << std::endl);
 
 //    min_x = std::min(x, min_x);
 //    max_x = std::max(x, max_x);
