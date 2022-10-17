@@ -55,8 +55,8 @@ GaussNewtonOptimizer::solve
   cv::Mat& former_params
   ) 
 {
-  int k         = 0 ;
-  bool found    = false ;
+  int k      = 0 ;
+  bool found = false ;
   double gradient_norm;
   cv::Mat new_params;
   cv::Mat current_params; 
@@ -66,7 +66,8 @@ GaussNewtonOptimizer::solve
   cv::Mat invJ;
   cv::Mat J;
   double cost;
-  
+  double previous_cost = std::numeric_limits<double>::max();
+
   if (m_show_iterations)
   {
     // Plot tracking statistics header
@@ -123,13 +124,24 @@ GaussNewtonOptimizer::solve
     cost = m_optim_problem->computeCostFunction(residual, new_params, delta, frame);
     m_iteration_costs.push_back(cost);
 
+
     if (m_show_iterations)
     {
       std::cout << "  " << k << "        " << cost << "        " << gradient_norm << std::endl;
     }
+
+    if ((cost > previous_cost) && (m_show_iterations))
+    {
+      found = true;
+      if (m_show_iterations)
+      {
+        std::cout << "STOP. Cost is not decreasing." << std::endl;
+      }
+    }
+    previous_cost = cost;
+
     
-    // 1st stopping criterion: the norm of the gradient is under a given
-    // threshold.
+    // stopping criterion: the norm of the gradient is under a given threshold.
     if (gradient_norm < m_tol_gradient) 
     {
       found = true ;
