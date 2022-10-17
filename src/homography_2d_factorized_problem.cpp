@@ -19,6 +19,8 @@
 #include "homography_2d_factorized_problem.hpp"
 #include "trace.hpp"
 
+//#define DEBUG
+
 namespace upm { namespace pcr
 {
 
@@ -98,45 +100,6 @@ Homography2DFactorizedProblem::computeCostFunction
 //
 // -----------------------------------------------------------------------------  
 cv::Mat
-Homography2DFactorizedProblem::computeInverseJacobian
-  (
-  cv::Mat& params
-  )
-{
-  assert(params.rows == 9);
-  assert(params.cols == 1);
-  
-  cv::Mat Sigma    = computeSigmaMatrix(params);  
-  cv::Mat invSigma = Sigma.inv();
-  cv::Mat  invJ; 
-  invJ             = invSigma * m_invM0;
-
-#ifdef DEBUG
-  // write Mat objects to the file
-  cv::FileStorage fs("Homography2DFactorizedProblem_computeInverseJacobian.xml", cv::FileStorage::WRITE);
-  fs << "params" << params; 
-  fs << "Sigma" << Sigma;
-  fs << "invSigma" << invSigma;
-  fs << "invJ" << invJ;
-  fs << "M0" << m_M0;
-  fs << "m_invM0" << m_invM0;
-  fs.release();
-#endif  
-
-  return invJ;
-};
-
-    
-// -----------------------------------------------------------------------------
-//
-// Purpose and Method: 
-// Inputs: 
-// Outputs: 
-// Dependencies:
-// Restrictions and Caveats:
-//
-// -----------------------------------------------------------------------------  
-cv::Mat
 Homography2DFactorizedProblem::computeResidual
   (
   cv::Mat& image,
@@ -149,12 +112,12 @@ Homography2DFactorizedProblem::computeResidual
   cv::Mat warped_image, warped_image_gray;
   cv::Mat residual; 
   
-  assert(params.rows == 9);
+  assert(params.rows == m_motion_model->getNumParams());
   assert(params.cols == 1);
     
   m_object_model->getReferenceCoords(template_coords);
   warped_image      = m_motion_model->warpImage(image, params, template_coords, ctrl_coords_indices);
-  warped_image_gray = cv::Mat::zeros(warped_image.rows, warped_image_gray.cols, cv::DataType<uchar>::type);
+  warped_image_gray = cv::Mat::zeros(warped_image.rows, warped_image.cols, cv::DataType<uchar>::type);
   
   if (warped_image.channels() == 3)
   {
@@ -162,7 +125,7 @@ Homography2DFactorizedProblem::computeResidual
   }
   else
   {
-    warped_image_gray = warped_image.clone();
+    warped_image.convertTo(warped_image_gray, cv::DataType<uchar>::type);
   }
 
   cv::Mat features_vector          = m_object_model->extractFeaturesFromWarpedImage(warped_image_gray);
@@ -177,19 +140,22 @@ Homography2DFactorizedProblem::computeResidual
 
   cv::namedWindow("template");
   cv::Mat template_uchar;
-  template_features_vector.reshape(1, warped_image.rows).convertTo(template_uchar, cv::DataType<uchar>::type);
+//  template_features_vector.reshape(1, warped_image.rows).convertTo(template_uchar, cv::DataType<uchar>::type);
+  template_features_vector.reshape(1, warped_image.rows).copyTo(template_uchar);
   cv::imshow("template", template_uchar);
   
   cv::namedWindow("residual");
-  cv::Mat residual_uchar;
-  residual.convertTo(residual_uchar, cv::DataType<uchar>::type);
-  cv::imshow("residual", residual_uchar.reshape(1, warped_image.rows));
+//  cv::Mat residual_uchar;
+//  residual.convertTo(residual_uchar, cv::DataType<uchar>::type);
+//  cv::imshow("residual", residual_uchar.reshape(1, warped_image.rows));
+  cv::imshow("residual", residual.reshape(1, warped_image.rows));
 
   // write Mat objects to the file
   cv::FileStorage fs("Homography2DFactorizedProblem_computeResidual.xml", cv::FileStorage::WRITE);
   fs << "template_features_vector" << template_features_vector;
   fs << "features_vector" << features_vector;
   fs << "params" << params;
+  fs << "warped_image" << residual.reshape(1, warped_image.rows);
   fs << "residual" << residual;
   fs.release();
   cv::imwrite("Homography2DFactorizedProblem_computeResidual_warped_image.bmp", warped_image_gray);
@@ -197,6 +163,58 @@ Homography2DFactorizedProblem::computeResidual
   
   return residual; 
 };
+
+// -----------------------------------------------------------------------------
+//
+// Purpose and Method:
+// Inputs:
+// Outputs:
+// Dependencies:
+// Restrictions and Caveats:
+//
+// -----------------------------------------------------------------------------
+cv::Mat
+Homography2DFactorizedProblem::computeInverseJacobian
+  (
+  cv::Mat& params
+  )
+{
+  assert(params.rows == m_motion_model->getNumParams());
+  assert(params.cols == 1);
+
+  cv::Mat Sigma = computeSigmaMatrix(params);
+  cv::Mat Hess  = Sigma.t() * m_M0t_M0 * Sigma;
+  cv::Mat invJ  = Hess.inv() * (Sigma.t() * m_M0.t());
+
+//  // With 9 parameters in the homography we can safely do
+//  // Gauss-Newton Jacobian inverse
+//  cv::Mat Sigma    = computeSigmaMatrix(params);
+////  cv::Mat invSigma = Sigma.inv();
+////  cv::Mat invJ     = invSigma * m_invM0;
+
+//  cv::Mat H            = params.reshape(1, 3).t();
+//  cv::Mat invSigma     = cv::Mat::zeros(9, 9, cv::DataType<MAT_TYPE>::type);
+//  H.copyTo(invSigma(cv::Range(0,3), cv::Range(0,3)));
+//  H.copyTo(invSigma(cv::Range(3,6), cv::Range(3,6)));
+//  H.copyTo(invSigma(cv::Range(6,9), cv::Range(6,9)));
+//  cv::Mat invJ     = invSigma * m_invM0;
+
+#ifdef DEBUG
+  // write Mat objects to the file
+  cv::FileStorage fs("Homography2DFactorizedProblem_computeInverseJacobian.xml", cv::FileStorage::WRITE);
+  fs << "params" << params;
+  fs << "Sigma" << Sigma;
+//  fs << "Hess" << Hess;
+  fs << "invJ" << invJ;
+  fs << "m_invM0" << m_invM0;
+  fs << "M0" << m_M0;
+  fs << "m_M0t_M0" << m_M0t_M0;
+  fs.release();
+#endif
+
+  return invJ;
+};
+
 
 // -----------------------------------------------------------------------------
 //
@@ -214,13 +232,6 @@ Homography2DFactorizedProblem::updateMotionParams
   cv::Mat& delta_params
   )
 {
-//   cv::Mat new_params = cv::Mat::ones(params.rows, 1, cv::DataType<MAT_TYPE>::type);
-//   cv::Mat new_params_ref = new_params(cv::Range(0, 8), cv::Range::all());  
-//   cv::Mat params_ref = params(cv::Range(0, 8), cv::Range::all());  
-//   
-//   new_params_ref   = params_ref + delta_params;
-//   
-//   return new_params;
   return params + delta_params;
 };
     
@@ -239,20 +250,21 @@ Homography2DFactorizedProblem::computeSigmaMatrix
   cv::Mat& params
   )
 { 
-  assert(params.rows == 9);
+  assert(params.rows == m_motion_model->getNumParams());
   assert(params.cols == 1);
 
-  cv::Mat H            = params.reshape(1, 3).t();
+  cv::Mat params2 = cv::Mat::ones(9,1, cv::DataType<MAT_TYPE>::type);
+  params.copyTo(params2(cv::Range(0,8), cv::Range::all()));
+  cv::Mat H            = params2.reshape(1, 3).t();
   cv::Mat invH         = H.inv();
   
-  cv::Mat Sigma     = cv::Mat::zeros(9, 9, cv::DataType<MAT_TYPE>::type);
-  cv::Mat Sigma_roi = Sigma(cv::Range(0,3), cv::Range(0,3));
-  invH.copyTo(Sigma_roi);
-  Sigma_roi         = Sigma(cv::Range(3,6), cv::Range(3,6));
-  invH.copyTo(Sigma_roi);
-  Sigma_roi         = Sigma(cv::Range(6,9), cv::Range(6,9));
-  invH.copyTo(Sigma_roi);
-      
+  cv::Mat Sigma     = cv::Mat::zeros(9, 8, cv::DataType<MAT_TYPE>::type);
+  invH.copyTo(Sigma(cv::Range(0,3), cv::Range(0,3)));
+  invH.copyTo(Sigma(cv::Range(3,6), cv::Range(3,6)));
+//  invH.copyTo(Sigma(cv::Range(6,9), cv::Range(6,9)));
+  cv::Mat invH_roi = invH(cv::Range(0,3), cv::Range(0,2));
+  invH_roi.copyTo(Sigma(cv::Range(6,9), cv::Range(6,8)));
+
   return Sigma;
 };
     
@@ -273,36 +285,27 @@ Homography2DFactorizedProblem::computeM0Matrix
   cv::Mat M0;
   cv::Mat gradients;
   cv::Mat zero_params;
-  MAT_TYPE x, y;
-  MAT_TYPE grad_x, grad_y, grad_xy;
   std::vector<LineIndices> ctrl_coords_lines;
   
   m_object_model->getReferenceCoords(template_coords);
-  M0              = cv::Mat::zeros(template_coords.rows, m_motion_model->getNumParams(), cv::DataType<MAT_TYPE>::type);
+//  M0              = cv::Mat::zeros(template_coords.rows, m_motion_model->getNumParams(), cv::DataType<MAT_TYPE>::type);
+  M0              = cv::Mat::zeros(template_coords.rows, 9, cv::DataType<MAT_TYPE>::type);
   zero_params     = cv::Mat::zeros(m_motion_model->getNumParams(), 1, cv::DataType<MAT_TYPE>::type);
   gradients       = m_object_model->computeTemplateFeaturesGradient(zero_params);
 
   assert(gradients.rows == M0.rows);
   assert(gradients.cols == 2);
 
-  for (int i=0; i < M0.rows; i++)
-  {     
-    x      = template_coords.at<MAT_TYPE>(i,0);
-    y      = template_coords.at<MAT_TYPE>(i,1);
-    grad_x = gradients.at<MAT_TYPE>(i,0);
-    grad_y = gradients.at<MAT_TYPE>(i,1);
-    grad_xy = -((grad_x * x) + (grad_y * y));
-  
-    M0.at<MAT_TYPE>(i,0) = grad_x  * x;
-    M0.at<MAT_TYPE>(i,1) = grad_y  * x;
-    M0.at<MAT_TYPE>(i,2) = grad_xy * x;
-    M0.at<MAT_TYPE>(i,3) = grad_x  * y;
-    M0.at<MAT_TYPE>(i,4) = grad_y  * y;
-    M0.at<MAT_TYPE>(i,5) = grad_xy * y;
-    M0.at<MAT_TYPE>(i,6) = grad_x;
-    M0.at<MAT_TYPE>(i,7) = grad_y;
-    M0.at<MAT_TYPE>(i,8) = grad_xy;
-  }
+  M0.col(0) = gradients.col(0).mul(template_coords.col(0)); // grad_x * x
+  M0.col(1) = gradients.col(1).mul(template_coords.col(0)); // grad_y * x
+  cv::Mat grad_xy = -(M0.col(0) + M0.col(1));
+  M0.col(2) = grad_xy.mul(template_coords.col(0)); // grad_xy * x
+  M0.col(3) = gradients.col(0).mul(template_coords.col(1)); // grad_x * y
+  M0.col(4) = gradients.col(1).mul(template_coords.col(1)); // grad_y * y
+  M0.col(5) = grad_xy.mul(template_coords.col(1)); // grad_xy * y
+  gradients.col(0).copyTo(M0.col(6)); // grad_x
+  gradients.col(1).copyTo(M0.col(7)); // grad_y
+//  grad_xy.copyTo(M0.col(8)); // grad_xy
 
 #ifdef DEBUG  
   cv::namedWindow("M0");
@@ -314,7 +317,7 @@ Homography2DFactorizedProblem::computeM0Matrix
   MAT_TYPE min_y = *std::min_element(col.begin<MAT_TYPE>(), col.end<MAT_TYPE>());
   MAT_TYPE max_y = *std::max_element(col.begin<MAT_TYPE>(), col.end<MAT_TYPE>());
 
-  int img_width  = round(max_x - min_x+ 1);
+  int img_width  = round(max_x - min_x + 1);
   int img_height = round(max_y - min_y + 1);
   
   cv::Mat Jacobian_image = cv::Mat::zeros(img_height, img_width * M0.cols, cv::DataType<uint8_t>::type);

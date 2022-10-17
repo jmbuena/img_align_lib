@@ -60,23 +60,6 @@ Homography2D::~Homography2D
 // Dependencies:
 // Restrictions and Caveats:
 //
-// -------------------------------------------------------------------------  
-// cv::Mat
-// Homography2D::computeMotionJacobian
-//   (
-//   cv::Mat params  
-//   )
-// {
-// };
-  
-// -----------------------------------------------------------------------------
-//
-// Purpose and Method: 
-// Inputs: 
-// Outputs: 
-// Dependencies:
-// Restrictions and Caveats:
-//
 // -----------------------------------------------------------------------------  
 cv::Mat
 Homography2D::scaleInputImageResolution
@@ -85,19 +68,46 @@ Homography2D::scaleInputImageResolution
   double scale
   )
 {
+  cv::Mat new_params;
+  cv::Mat new_params2;
   cv::Mat newH;
-  cv::Mat new_params = cv::Mat::eye(params.rows, 1, cv::DataType<MAT_TYPE>::type);
-  cv::Mat H          = params.reshape(1,3).t();
-  
-  cv::Mat S    = cv::Mat::eye(3,3,cv::DataType<MAT_TYPE>::type);
-  S.at<MAT_TYPE>(0,0) = scale;
-  S.at<MAT_TYPE>(1,1) = scale;
+  cv::Mat Ht;
+//  cv::Mat H;
 
-  newH = S*H;
-  newH = newH.t();
-  newH.reshape(1,9).copyTo(new_params);
-  
-  return new_params;
+//  SHOW_VALUE(params)
+  cv::Mat params2 = cv::Mat::ones(9,1, CV_32FC1);
+  params.copyTo(params2(cv::Range(0,8), cv::Range::all()));
+  cv::Mat H  = params2.reshape(1, 3).t();
+
+//  params.reshape(1,3).convertTo(Ht, cv::DataType<MAT_TYPE>::type);
+//  H = Ht.t();
+//  params.reshape(1,3).copyTo(Ht);
+
+//  SHOW_VALUE(params)
+//  SHOW_VALUE(params.size)
+//  SHOW_VALUE(params.type())
+//  SHOW_VALUE(Ht)
+//  SHOW_VALUE(Ht.size)
+//  SHOW_VALUE(Ht.type())
+
+  cv::Mat S = cv::Mat::eye(3,3,cv::DataType<MAT_TYPE>::type);
+  S.at<MAT_TYPE>(0,0) = static_cast<MAT_TYPE>(scale);
+  S.at<MAT_TYPE>(1,1) = static_cast<MAT_TYPE>(scale);
+
+//  SHOW_VALUE(St)
+//  SHOW_VALUE(St.size)
+//  SHOW_VALUE(St.type())
+
+  newH = H*S;
+  newH /= newH.at<MAT_TYPE>(2,2);
+  cv::Mat newHt = newH.t();
+  newHt.reshape(1,9).copyTo(new_params);
+  new_params2 = new_params(cv::Range(0,8), cv::Range::all()).clone();
+
+//  SHOW_VALUE(params)
+//  SHOW_VALUE(new_params)
+
+  return new_params2;
 }
 
 // -----------------------------------------------------------------------------
@@ -110,7 +120,7 @@ Homography2D::scaleInputImageResolution
 //
 //    The motion params are always from template to current image and with this
 //    method we have to use the inverse motion model.
-// -----------------------------------------------------------------------------  
+// ----------------------------------------------------------------------------
 cv::Mat
 Homography2D::transformCoordsToTemplate
   (
@@ -118,12 +128,16 @@ Homography2D::transformCoordsToTemplate
   cv::Mat params   
   )
 {
-  cv::Mat H = params.reshape(1,3).t();
-  cv::Mat invH      = H.inv().t();                                        
+  cv::Mat params2 = cv::Mat::ones(9, 1, CV_32FC1);
+  params.copyTo(params2(cv::Range(0,8), cv::Range::all()));
+  cv::Mat H  = params2.reshape(1, 3).t();
+//  cv::Mat H = params.reshape(1,3).t();
+  cv::Mat invHt = H.inv().t();
 
-  cv::Mat inv_params = invH.reshape(1,9);
+  cv::Mat inv_params;
+  invHt.reshape(1,9).copyTo(inv_params);
   
-  return transformCoordsToImage(coords, inv_params);  
+  return transformCoordsToImage(coords, inv_params(cv::Range(0,8), cv::Range::all()));
 };
 
 // -----------------------------------------------------------------------------
@@ -143,26 +157,43 @@ Homography2D::transformCoordsToImage
   )
 {
   assert(coords.cols == 2); // We need two dimensional coordinates
-  
-  cv::Mat H                      = params.reshape(1, 3).t();
-  cv::Mat homogeneous_coords     = cv::Mat::ones(coords.rows, 3, cv::DataType<MAT_TYPE>::type);
+
+  cv::Mat params2 = cv::Mat::ones(9,1, CV_32FC1);
+  params.copyTo(params2(cv::Range(0,8), cv::Range::all()));
+  cv::Mat H  = params2.reshape(1, 3).t();
+//  cv::Mat H                      = params.reshape(1, 3).t();
+  cv::Mat homogeneous_coords     = cv::Mat::ones(coords.rows, 3, CV_32FC1);
   cv::Mat homogeneous_coords_ref = homogeneous_coords(cv::Range::all(), cv::Range(0, 2));
   coords.copyTo(homogeneous_coords_ref);
+
+//  // ---------------------------------
+//  double minVal_homogeneous_coords_ref;
+//  double maxVal_homogeneous_coords_ref;
+//  cv::minMaxIdx(homogeneous_coords_ref, &minVal_homogeneous_coords_ref, &maxVal_homogeneous_coords_ref);
+//  SHOW_VALUE(minVal_homogeneous_coords_ref)
+//  SHOW_VALUE(maxVal_homogeneous_coords_ref)
+//  // --------------------------------
   
   cv::Mat homogeneous_new_coords = (homogeneous_coords * H.t());
-  
+
   // Divide by the third homogeneous coordinates to get the cartersian coordinates.
-  for (int j=0; j<3; j++)
-  {
-    cv::Mat col     = homogeneous_new_coords.col(j) / homogeneous_new_coords.col(2);
-    cv::Mat col_new = homogeneous_new_coords.col(j);
-    col.copyTo(col_new);
-  }
-    
-  cv::Mat homogeneous_new_coords_ref = homogeneous_new_coords(cv::Range::all(), cv::Range(0, 2)); 
-  cv::Mat new_coords;
-  homogeneous_new_coords_ref.copyTo(new_coords);
-  
+  homogeneous_new_coords.col(0) /= homogeneous_new_coords.col(2);
+  homogeneous_new_coords.col(1) /= homogeneous_new_coords.col(2);
+  homogeneous_new_coords.col(2) /= homogeneous_new_coords.col(2);
+
+//  for (int j=0; j<3; j++)z
+//  {
+//    cv::Mat col     = homogeneous_new_coords.col(j) / homogeneous_new_coords.col(2);
+//    cv::Mat col_new = homogeneous_new_coords.col(j);
+//    col.copyTo(col_new);
+//  }
+
+//  cv::Mat homogeneous_new_coords_ref = homogeneous_new_coords(cv::Range::all(), cv::Range(0, 2));
+//  cv::Mat new_coords;
+//  homogeneous_new_coords_ref.copyTo(new_coords);
+
+  cv::Mat new_coords = homogeneous_new_coords(cv::Range::all(), cv::Range(0, 2)).clone();
+
 #ifdef DEBUG
   // write Mat objects to the file
   cv::FileStorage fs("transformCoordsToImage.xml", cv::FileStorage::WRITE);
@@ -171,7 +202,7 @@ Homography2D::transformCoordsToImage
   fs << "new_coords" << new_coords;
   fs.release();
 #endif
-  
+
   return new_coords;  
 };
 
@@ -196,32 +227,51 @@ Homography2D::warpImage
   MAT_TYPE min_x, max_x, min_y, max_y;
   cv::Mat warped_image;
 
-  cv::Mat M;
-  cv::Mat H = params.reshape(1,3).t();
-  
-  // Find minimum x and minimum y in template coords
-  cv::MatConstIterator_<MAT_TYPE> it;
-  max_x = std::numeric_limits<MAT_TYPE>::min();
-  max_y = std::numeric_limits<MAT_TYPE>::min();
-  min_x = std::numeric_limits<MAT_TYPE>::max();
-  min_y = std::numeric_limits<MAT_TYPE>::max();
+  cv::Mat params2 = cv::Mat::ones(9,1, CV_32FC1);
+  params.copyTo(params2(cv::Range(0,8), cv::Range::all()));
+  cv::Mat Ht  = params2.reshape(1, 3);
 
-  for (int i = 0; i < template_coords.rows; i++)
-  {  
-    MAT_TYPE x = template_coords.at<MAT_TYPE>(i,0);
-    MAT_TYPE y = template_coords.at<MAT_TYPE>(i,1);
-    
-    if (x > max_x) max_x = x;
-    if (x < min_x) min_x = x;
-    if (y > max_y) max_y = y;
-    if (y < min_y) min_y = y;
+  cv::Mat M;
+//  cv::Mat Ht = cv::Mat::zeros(3, 3,  cv::DataType<MAT_TYPE>::type);
+////  params.reshape(1,3).convertTo(Ht, cv::DataType<MAT_TYPE>::type);
+//  params.reshape(1,3).copyTo(Ht);
+
+//  SHOW_VALUE(params)
+//  SHOW_VALUE(params.size)
+//  SHOW_VALUE(params.type())
+//  SHOW_VALUE(Ht.t())
+//  SHOW_VALUE(Ht.size)
+//  SHOW_VALUE(Ht.type())
+
+  // Find minimum x and minimum y in template coords
+//  cv::MatConstIterator_<MAT_TYPE> it;
+   max_x = std::numeric_limits<MAT_TYPE>::min();
+   max_y = std::numeric_limits<MAT_TYPE>::min();
+   min_x = std::numeric_limits<MAT_TYPE>::max();
+   min_y = std::numeric_limits<MAT_TYPE>::max();
+
+   for (int i = 0; i < template_coords.rows; i++)
+   {
+     MAT_TYPE x = template_coords.at<MAT_TYPE>(i,0);
+     MAT_TYPE y = template_coords.at<MAT_TYPE>(i,1);
+
+     if (x > max_x) max_x = x;
+     if (x < min_x) min_x = x;
+     if (y > max_y) max_y = y;
+     if (y < min_y) min_y = y;
   }
 
-  cv::Mat TR  = (cv::Mat_<MAT_TYPE>(3,3) << 1.,    0,    min_x, 
-		                            0,    1.,    min_y, 
-		                            0,     0,    1.);
-  warped_image = cv::Mat::zeros(max_y-min_y+1, max_x-min_x+1, cv::DataType<uint8_t>::type);
-  
+  // Coordinates of the template image in Single Image Model start at -width/2, -height/2 already.
+  // Thus, (min_x, min_y) is the right traslation vector to correct the homography centred
+  // at the template. It will correct the warping operations that assumes the template top left corner
+  // is at (0,0).
+  int width = (max_x - min_x + 1);
+  int height = (max_y - min_y + 1);
+  cv::Mat TR  = (cv::Mat_<MAT_TYPE>(3,3) << 1.,    0,    min_x,
+                                            0,    1.,    min_y,
+                                            0,     0,    1.);
+  warped_image = cv::Mat::zeros(height, width, cv::DataType<uint8_t>::type);
+
 //   if (scale < 0.000000001)
 //   {
 //     return warped_image;
@@ -230,7 +280,8 @@ Homography2D::warpImage
   // TR is necessary because the Warpers do warping taking
   // the pixel (0,0) as the left and top most pixel of the template.
   // So, we have move the (0,0) to the center of the Template.
-  M = H*TR;
+//  SHOW_VALUE(TR)
+  M = Ht.t()*TR;
 
 #ifdef DEBUG
   // write Mat objects to the file
@@ -295,7 +346,11 @@ Homography2D::invalidParams
   )
 {
   cv::Mat M;
-  cv::Mat H = params.reshape(1,3).t();
+//  cv::Mat H = params.reshape(1,3).t();
+
+  cv::Mat params2 = cv::Mat::ones(9,1, CV_32FC1);
+  params.copyTo(params2(cv::Range(0,8), cv::Range::all()));
+  cv::Mat H  = params2.reshape(1, 3).t();
 
   cv::SVD svd(H, cv::SVD::NO_UV);
   
@@ -308,7 +363,7 @@ Homography2D::invalidParams
     }
   }
   
-  SHOW_VALUE(H);
+//  SHOW_VALUE(H);
   
   // Stablish the 
   cv::Mat points = (cv::Mat_<MAT_TYPE>(4, 2) <<   0, 0,
@@ -326,7 +381,7 @@ Homography2D::invalidParams
 //                   || (!consistentPoints(points, transformed_points, 1, 2, 3)) 
 //                   || (!consistentPoints(points, transformed_points, 0, 2, 3)) 
 //                   || (!consistentPoints(points, transformed_points, 0, 1, 3)); 
-  return (rank<3) ||(detH < (1./10.)) || (detH > 10.) 
+  return (rank<3) ||(detH < (1./10.)) || (detH > 10.)
                   || (!consistentPoints(points, transformed_points, 0, 1, 2)) 
                   || (!consistentPoints(points, transformed_points, 1, 2, 3)) 
                   || (!consistentPoints(points, transformed_points, 0, 2, 3)) 

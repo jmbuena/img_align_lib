@@ -11,25 +11,23 @@ using namespace cv;
 using namespace upm::pcr;
 namespace po = boost::program_options;
 
-const double TICKS_PER_SECOND       = (static_cast<double>(cv::getTickFrequency())*1.0e6);
-const double TICKS_PER_MILLISECOND  = (static_cast<double>(cv::getTickFrequency())*1.0e3);
 const int FRAME_HEIGHT              = 480;
 const int FRAME_WIDTH               = 640;
 const int TEMPLATE_IMG_WIDTH        = 75;
 const int TEMPLATE_IMG_WIDTH_DIV2   = static_cast<int>(TEMPLATE_IMG_WIDTH / 2.0);
 const int TEMPLATE_IMG_HEIGHT       = 75;
-const int TEMPLATE_IMG_HEIGHT_DIV2   = static_cast<int>(TEMPLATE_IMG_HEIGHT / 2.0);
+const int TEMPLATE_IMG_HEIGHT_DIV2  = static_cast<int>(TEMPLATE_IMG_HEIGHT / 2.0);
 const double TEMPLATE_SCALE         = 3;
 const bool TEMPLATE_EQUALIZATION    = true;
-const int NUM_MAX_ITERATIONS        = 20;
+const int NUM_MAX_ITERATIONS        = 40;
 const bool SHOW_OPTIMIZER_ITERATION_COSTS = true;
-const int  NUM_PYRAMID_LEVELS       = 2;
-const float MAX_COST_FUNCTION_VALUE = 150;
+const int  NUM_PYRAMID_LEVELS       = 1;
+const float MAX_COST_FUNCTION_VALUE = 300;
 // const int SURF_HESSIAN_THRESHOLD    = 200;
 
-#undef USE_HOMOGRAPHY_FACTORIZED_PROBLEM
+#define USE_HOMOGRAPHY_FACTORIZED_PROBLEM
 #undef USE_AFFINE_FACTORIZED_PROBLEM
-#define USE_SIMILARITY_FACTORIZED_PROBLEM
+#undef USE_SIMILARITY_FACTORIZED_PROBLEM
 #undef USE_SIMILARITY_CORR_GRAD_INV_COMP_PROBLEM
 
 #ifdef USE_SIMILARITY_FACTORIZED_PROBLEM 
@@ -83,20 +81,26 @@ processFrame
   Mat motion_params;
 
   ticks = static_cast<double>(cv::getTickCount());
-  
+
+//  TRACE_INFO("-> tracker.isLost()"<< std::endl);
   if (tracker.isLost())
   {
+//    TRACE_INFO("<- tracker.isLost()"<< std::endl);
     Mat src_corners = (cv::Mat_<MAT_TYPE>(4, 2) << 0,                   0,
                                                    template_image.cols, 0,
                                                    template_image.cols, template_image.rows,
                                                    0                  , template_image.rows);
     Mat dst_corners;
     src_corners.copyTo(dst_corners);
+//    TRACE_INFO("-> detector.locateObject()"<< std::endl);
     if (detector.locateObject(frame, src_corners, dst_corners))
     {
+//      TRACE_INFO("<- detector.locateObject()"<< std::endl);
       cv::Point2f src_points[4];
       cv::Point2f dst_points[4];
 
+      // We use the src corrdinates of the four template image coorners
+      // with the origin on the template image centre
       src_points[0].x = static_cast<MAT_TYPE>(-TEMPLATE_IMG_WIDTH_DIV2);
       src_points[0].y = static_cast<MAT_TYPE>(-TEMPLATE_IMG_HEIGHT_DIV2);
       src_points[1].x = static_cast<MAT_TYPE>(TEMPLATE_IMG_WIDTH_DIV2);
@@ -116,9 +120,7 @@ processFrame
       dst_points[3].y = dst_corners.at<MAT_TYPE>(3, 1);
 
 #ifdef USE_SIMILARITY_MODEL
-      Mat A           = Mat::zeros(2, 3, DataType<MAT_TYPE>::type);
-       
-      A = cv::getAffineTransform(src_points, dst_points);
+      Mat A = cv::getAffineTransform(src_points, dst_points);
       
       float dx = (src_points[1].x - src_points[0].x);
       float dy = (src_points[1].y - src_points[0].y);
@@ -131,16 +133,9 @@ processFrame
                                                    A.at<double>(1,2),  // ty
                                                    angle,  // angle
                                                    (A.at<double>(0,0) + A.at<double>(1,1))/2.0); // scale
-#elif defined(USE_AFFINE_MODEL) 
-//      Mat A           = Mat::zeros(2, 3, DataType<MAT_TYPE>::type);
-       
-      dst_points[0].x = dst_corners.at<MAT_TYPE>(0, 0);
-      dst_points[0].y = dst_corners.at<MAT_TYPE>(0, 1);
-      dst_points[1].x = dst_corners.at<MAT_TYPE>(1, 0);
-      dst_points[1].y = dst_corners.at<MAT_TYPE>(1, 1);
-      dst_points[2].x = dst_corners.at<MAT_TYPE>(2, 0);
-      dst_points[2].y = dst_corners.at<MAT_TYPE>(2, 1);
+//      TRACE_INFO("-> 2 =========="<< std::endl);
 
+#elif defined(USE_AFFINE_MODEL)
       cv::Mat A = cv::getAffineTransform(src_points, dst_points);
       TRACE_INFO("A = " << A << std::endl);
       motion_params =  (cv::Mat_<MAT_TYPE>(6,1) << A.at<double>(0,2),  // tx
@@ -149,31 +144,42 @@ processFrame
                                                    A.at<double>(1,0),  // b
                                                    A.at<double>(0,1),  // c
                                                    A.at<double>(1,1)); // d
+//      TRACE_INFO("-> 2 =========="<< std::endl);
 
 #elif defined(USE_HOMOGRAPHY_MODEL) 
-      Mat H           = Mat::zeros(3, 3, DataType<MAT_TYPE>::type);
-      H = cv::findHomography(src_corners, dst_corners);
-      TRACE_INFO("H = " << H << std::endl);
+      Mat H = cv::getPerspectiveTransform(src_points, dst_points);
 
-      cv::Mat Ht = H.t();
-      Ht.reshape(9,1).copyTo(motion_params);
+      motion_params =  (cv::Mat_<MAT_TYPE>(8,1) << H.at<double>(0,0),
+                                                   H.at<double>(1,0),
+                                                   H.at<double>(2,0),
+                                                   H.at<double>(0,1),
+                                                   H.at<double>(1,1),
+                                                   H.at<double>(2,1),
+                                                   H.at<double>(0,2),
+                                                   H.at<double>(1,2)); //,
+//                                                   H.at<double>(2,2));
+
+
+//      TRACE_INFO("-> 2 =========="<< std::endl);
+//      SHOW_VALUE(H)
 #else
   #error "Wrong motion model configuration"
 #endif
-      std::cout << "motion_params_detect_ = " << motion_params << std::endl;
+//      TRACE_INFO("motion_params_detect_ = " << motion_params << std::endl);
+//      SHOW_VALUE(motion_params.size)
       tracker.setInitialParams(motion_params);
+//      TRACE_INFO("-> 3 =========="<< std::endl);
       tracker.processFrame(frame);
-      std::cout << "motion_params_track_ = " << tracker.getParams() << std::endl;
+//      TRACE_INFO("motion_params_track_ = " << tracker.getParams() << std::endl);
     }
   }
   else
   {
     tracker.processFrame(frame);
-    std::cout << "motion_params_track = " << tracker.getParams() << std::endl;
+//    std::cout << "motion_params_track = " << tracker.getParams() << std::endl;
   }
-  ticks = static_cast<double>(cv::getTickCount()) - ticks;
 
-  return ticks;
+  return static_cast<double>(cv::getTickCount()) - ticks;
 }
 
 // -----------------------------------------------------------------------------
@@ -192,7 +198,7 @@ showResults
   upm::pcr::Viewer& viewer,
   upm::pcr::Tracker& tracker,
   upm::pcr::PlanarObjectDetector& detector,
-  time_t ticks
+  double ticks
   )
 {
   float red_color[3] = {1.0, 0.0, 0.0};
@@ -203,8 +209,7 @@ showResults
   }
 
   std::ostringstream outs;
-  outs << "FPS =" << std::setprecision(3); 
-  outs << TICKS_PER_SECOND/ticks << std::ends;
+  outs << "FPS =" << std::setprecision(3) << (ticks / cv::getTickFrequency()) << std::ends;
   std::string time_info = outs.str();
 
   // Drawing results
@@ -212,11 +217,15 @@ showResults
   viewer.image(frame, 0, 0, frame.cols, frame.rows);
   if (!tracker.isLost())
   {
+//    TRACE_INFO("-> tracker.showResults)"<< std::endl);
     tracker.showResults(viewer, frame);
+//    TRACE_INFO("<- tracker.showResults)"<< std::endl);
   }
   else
   {
+//    TRACE_INFO("-> detector.showResults()"<< std::endl);
     detector.showResults(viewer, frame);
+//    TRACE_INFO("<- detector.showResults()"<< std::endl);
   }
   viewer.text(time_info, 20, frame.rows-20, red_color, 0.5);
   viewer.endDrawing();  
@@ -274,7 +283,7 @@ getTemplate
   top    = initial_params.at<MAT_TYPE>(7,0) - round((TEMPLATE_IMG_HEIGHT/2.0)*TEMPLATE_SCALE);
   height = round(TEMPLATE_IMG_HEIGHT * TEMPLATE_SCALE);
   left   = initial_params.at<MAT_TYPE>(6,0) - round((TEMPLATE_IMG_WIDTH/2.0)*TEMPLATE_SCALE);
-  width  = round(TEMPLATE_IMG_WIDTH  * TEMPLATE_SCALE);  
+  width  = round(TEMPLATE_IMG_WIDTH  * TEMPLATE_SCALE);
 #else
   #error "Wrong motion model configuration"
 #endif
@@ -282,11 +291,10 @@ getTemplate
   viewer.endDrawing();  
 
   char key = waitKey(10);
-  if ((key == 't')) // || (is_video_file))
+  if (key == 't') // || (is_video_file))
   {
     have_template        = true;
     cv::Mat template_roi = frame(cv::Rect(left, top, width, height));
-//    cv::resize(template_roi, template_image, Size(TEMPLATE_IMG_WIDTH, TEMPLATE_IMG_HEIGHT));
     template_roi.copyTo(template_image);
     imwrite("template_image.bmp", template_image);
   }
@@ -311,7 +319,6 @@ main
   )
 {
   Viewer viewer;
-//  bool viewer_initialized = false;
   Mat frame_cap;
   Mat frame;
   Mat template_image;
@@ -410,16 +417,19 @@ main
 		                                 TEMPLATE_SCALE, 0.,
 						 0.,             TEMPLATE_SCALE);
 #elif defined(USE_HOMOGRAPHY_MODEL)    
-    initial_params = (cv::Mat_<MAT_TYPE>(9,1) <<  TEMPLATE_SCALE ,             0., 0.,
+    initial_params = (cv::Mat_<MAT_TYPE>(8,1) <<  TEMPLATE_SCALE ,             0., 0.,
                                                   0.             , TEMPLATE_SCALE, 0.,
-                   (static_cast<MAT_TYPE>(frame.cols)/2.0),  (static_cast<MAT_TYPE>(frame.rows)/2.0), 1.0);
+                   (static_cast<MAT_TYPE>(frame.cols)/2.0),  (static_cast<MAT_TYPE>(frame.rows)/2.0));
+//    initial_params = (cv::Mat_<MAT_TYPE>(9,1) <<  TEMPLATE_SCALE ,             0., 0.,
+//                                                  0.             , TEMPLATE_SCALE, 0.,
+//                   (static_cast<MAT_TYPE>(frame.cols)/2.0),  (static_cast<MAT_TYPE>(frame.rows)/2.0), 1.0);
 #else
   #error "Wrong motion model configuration"
 #endif
     
     if (!have_template)
     {
-      template_image_detection = getTemplate(frame, viewer, initial_params, have_template, use_video_file); //, ticks);
+      template_image_detection = getTemplate(frame, viewer, initial_params, have_template, use_video_file);
       cv::resize(template_image_detection, template_image, Size(TEMPLATE_IMG_WIDTH, TEMPLATE_IMG_HEIGHT));
     }
     else

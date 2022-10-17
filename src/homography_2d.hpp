@@ -50,7 +50,7 @@ typedef std::vector<Homography2D> Homographys2D;
  *
  *                [a b c]
  *       x(k+1) = [d e f] * x(k)
- *                [g h k]
+ *                [g h 1]
  * 
  *  We use homogeneus coordinates in the model to hand linear equation.
  *
@@ -71,7 +71,6 @@ typedef std::vector<Homography2D> Homographys2D;
  *                         ( h )
  *                         ( c )
  *                         ( f )
- *                         ( k )
  *
  */
 // -----------------------------------------------------------------------------
@@ -84,12 +83,6 @@ public:
 
   virtual ~Homography2D
     ();
-
-//   virtual cv::Mat
-//   computeMotionJacobian
-//     (
-//     cv::Mat params
-//     ); 
       
   virtual cv::Mat
   scaleInputImageResolution
@@ -129,7 +122,7 @@ public:
 
   virtual size_t 
   getNumParams
-    () { return 9; };    
+    () { return 8; };
     
 protected:
   
