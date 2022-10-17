@@ -13,11 +13,11 @@ using namespace upm::pcr;
 
 #undef USE_TRACKING_AFTER_DETECTION
 
-const double TICKS_PER_SECOND       = (static_cast<double>(cv::getTickFrequency())*1.0e6);
-const double TICKS_PER_MILLISECOND  = (static_cast<double>(cv::getTickFrequency())*1.0e3);
+//const double TICKS_PER_SECOND       = (static_cast<double>(cv::getTickFrequency())*1.0e6);
+//const double TICKS_PER_MILLISECOND  = (static_cast<double>(cv::getTickFrequency())*1.0e3);
 const int FRAME_HEIGHT              = 480;
 const int FRAME_WIDTH               = 640;
-const int NUM_MAX_ITERATIONS        = 20;
+const int NUM_MAX_ITERATIONS        = 40;
 const bool SHOW_OPTIMIZER_ITERATION_COSTS = true;
 const int  NUM_PYRAMID_LEVELS       = 3;
 const std::string CASCADE_NAME      = "/usr/share/opencv4/haarcascades/haarcascade_frontalface_alt2.xml";
@@ -28,8 +28,8 @@ const std::string CASCADE_NAME      = "/usr/share/opencv4/haarcascades/haarcasca
 // #include "pca_illum_9_identity_60_64x64.hpp"
 //#include "pca_illum_9_64x64.hpp"
 
-//#include "pca_illum_9_identity_40_32x32.hpp"
-#include "pca_illum_9_32x32.hpp"
+#include "pca_illum_9_identity_40_32x32.hpp"
+//#include "pca_illum_9_32x32.hpp"
 
 #ifdef USE_SIMILARITY_PCA_FACTORIZED_PROBLEM 
   #include "image_pca_model.hpp"
@@ -156,6 +156,7 @@ processFrame
 #else
    #error "Wrong motion model"
 #endif
+      SHOW_VALUE(initial_params)
       tracker.setInitialParams(initial_params);
       tracker.processFrame(frame);          
       first_time = false;
@@ -202,8 +203,7 @@ showResults
   }
 
   std::ostringstream outs;
-  outs << "FPS =" << std::setprecision(3); 
-  outs << TICKS_PER_SECOND/ticks << std::ends;
+  outs << "FPS =" << std::setprecision(2) << cv::getTickFrequency()/ticks << std::ends;
   std::string time_info = outs.str();
 
   // Drawing results
@@ -287,7 +287,7 @@ main
      return -1;
   }
     
-  cv::VideoCapture cap(input_name); // open the default camera
+  cv::VideoCapture cap(input_name);
 //  cv::VideoCapture cap(0); // open the default camera
   cap.set(cv::CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
   cap.set(cv::CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
@@ -295,7 +295,6 @@ main
   {      
     return -1;
   }
-
 
 //  cv::Mat B_mat(PCA_IMG_WIDTH*PCA_IMG_HEIGHT, PCA_NUM_BASIS, cv::DataType<MAT_TYPE>::type, 
 //                &PCA_B, sizeof(MAT_TYPE)*PCA_NUM_BASIS);

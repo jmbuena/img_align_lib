@@ -266,7 +266,6 @@ Homography2DFactorizedProblem::computeSigmaMatrix
   cv::Mat Sigma     = cv::Mat::zeros(9, 8, cv::DataType<MAT_TYPE>::type);
   invH.copyTo(Sigma(cv::Range(0,3), cv::Range(0,3)));
   invH.copyTo(Sigma(cv::Range(3,6), cv::Range(3,6)));
-//  invH.copyTo(Sigma(cv::Range(6,9), cv::Range(6,9)));
   cv::Mat invH_roi = invH(cv::Range(0,3), cv::Range(0,2));
   invH_roi.copyTo(Sigma(cv::Range(6,9), cv::Range(6,8)));
 
@@ -293,7 +292,6 @@ Homography2DFactorizedProblem::computeM0Matrix
   std::vector<LineIndices> ctrl_coords_lines;
   
   m_object_model->getReferenceCoords(template_coords);
-//  M0              = cv::Mat::zeros(template_coords.rows, m_motion_model->getNumParams(), cv::DataType<MAT_TYPE>::type);
   M0              = cv::Mat::zeros(template_coords.rows, 9, cv::DataType<MAT_TYPE>::type);
   zero_params     = cv::Mat::zeros(m_motion_model->getNumParams(), 1, cv::DataType<MAT_TYPE>::type);
   gradients       = m_object_model->computeTemplateFeaturesGradient(zero_params);

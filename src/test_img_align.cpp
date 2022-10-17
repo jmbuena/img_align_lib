@@ -13,20 +13,20 @@ namespace po = boost::program_options;
 
 const int FRAME_HEIGHT              = 480;
 const int FRAME_WIDTH               = 640;
-const int TEMPLATE_IMG_WIDTH        = 100;
+const int TEMPLATE_IMG_WIDTH        = 75;
 const int TEMPLATE_IMG_WIDTH_DIV2   = static_cast<int>(TEMPLATE_IMG_WIDTH / 2.0);
-const int TEMPLATE_IMG_HEIGHT       = 100;
+const int TEMPLATE_IMG_HEIGHT       = 75;
 const int TEMPLATE_IMG_HEIGHT_DIV2  = static_cast<int>(TEMPLATE_IMG_HEIGHT / 2.0);
 const double TEMPLATE_SCALE         = 3;
 const bool TEMPLATE_EQUALIZATION    = true;
-const int NUM_MAX_ITERATIONS        = 30;
+const int NUM_MAX_ITERATIONS        = 20;
 const bool SHOW_OPTIMIZER_ITERATION_COSTS = true;
-const int  NUM_PYRAMID_LEVELS       = 1;
+const int  NUM_PYRAMID_LEVELS       = 3;
 const float MAX_COST_FUNCTION_VALUE = 300;
 // const int SURF_HESSIAN_THRESHOLD    = 200;
 
-#define USE_HOMOGRAPHY_FACTORIZED_PROBLEM
-#undef USE_AFFINE_FACTORIZED_PROBLEM
+#undef USE_HOMOGRAPHY_FACTORIZED_PROBLEM
+#define USE_AFFINE_FACTORIZED_PROBLEM
 #undef USE_SIMILARITY_FACTORIZED_PROBLEM
 #undef USE_SIMILARITY_CORR_GRAD_INV_COMP_PROBLEM
 
@@ -200,7 +200,7 @@ showResults
   }
 
   std::ostringstream outs;
-  outs << "FPS =" << std::setprecision(3) << (ticks / cv::getTickFrequency()) << std::ends;
+  outs << "FPS =" << std::setprecision(3) << cv::getTickFrequency() / ticks << std::ends;
   std::string time_info = outs.str();
 
   // Drawing results
