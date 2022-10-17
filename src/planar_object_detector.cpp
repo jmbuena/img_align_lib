@@ -251,8 +251,6 @@ PlanarObjectDetector::showResults
     viewer.filled_ellipse(2, 2, 0.0, kp.pt.x, kp.pt.y, red);
   };
   
-  TRACE_INFO( " m_inliers_indices.size() = " << m_inliers_indices.size() << std::endl);
-
   for (auto& m: m_filtered_matches)
   {
     int index1 = m.trainIdx;
