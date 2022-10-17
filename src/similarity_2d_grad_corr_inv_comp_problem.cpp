@@ -19,8 +19,8 @@
 #include "similarity_2d_grad_corr_inv_comp_problem.hpp"
 //#include "trace.hpp"
 
-const double TINY_NUMBER       = 1.E-30;
-const float  TINY_FLOAT_NUMBER = 1.E-30;
+//const double TINY_NUMBER       = 1.E-30;
+const upm::pcr::MAT_TYPE TINY_FLOAT_NUMBER = static_cast<upm::pcr::MAT_TYPE>(1.E-30f);
 
 namespace upm { namespace pcr
 {
@@ -96,10 +96,10 @@ computeCorrelationOfGradients
     MAT_TYPE template_grad_x = template_features_vector.at<MAT_TYPE>(i,0);
     MAT_TYPE template_grad_y = template_features_vector.at<MAT_TYPE>(i,1);
 
-    double norm_grad          = std::max(sqrt(grad_x*grad_x + grad_y*grad_y),
+    double norm_grad          = std::max(static_cast<MAT_TYPE>(sqrt(grad_x*grad_x + grad_y*grad_y)),
                                          TINY_FLOAT_NUMBER);
-    double norm_template_grad = std::max(sqrt(template_grad_x*template_grad_x +
-                                              template_grad_y*template_grad_y),
+    double norm_template_grad = std::max(static_cast<MAT_TYPE>(sqrt(template_grad_x*template_grad_x +
+                                                                    template_grad_y*template_grad_y)),
                                          TINY_FLOAT_NUMBER);
     
     q_p += (grad_x/norm_grad)*(template_grad_x/norm_template_grad) +
