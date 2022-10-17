@@ -116,7 +116,7 @@ Affine2DFactorizedProblem::computeResidual
     
   m_object_model->getReferenceCoords(template_coords);
   warped_image      = m_motion_model->warpImage(image, params, template_coords, ctrl_coords_indices);
-  warped_image_gray = cv::Mat::zeros(warped_image.rows, warped_image_gray.cols, cv::DataType<uchar>::type);
+  warped_image_gray = cv::Mat::zeros(warped_image.rows, warped_image.cols, cv::DataType<uchar>::type);
   
   if (warped_image.channels() == 3)
   {
